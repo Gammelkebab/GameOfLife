@@ -7,7 +7,6 @@
 #PBS -l mem=4gb
 
 module load foss
-
 make
-
-mpirun ./main
+./main
+./create_video.sh

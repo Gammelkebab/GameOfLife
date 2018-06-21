@@ -2,5 +2,5 @@
 git pull
 git commit -a -m "automated Commit"
 git push
-ssh nhmq$1@login.cluster.uni-hannover.de 'bash -s' < RunGameOfLife
+ssh nhmq$1@login.cluster.uni-hannover.de 'bash -s' < ./RunGameOfLife
 git pull

@@ -1,5 +1,5 @@
 #!/bin/bash
 cd GameOfLife
-git pull
+git pull -f
 ./Script.sh
 

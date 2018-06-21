@@ -8,5 +8,5 @@
 
 module load foss
 make
-./main
+mpirun ./main
 ./create_video.sh

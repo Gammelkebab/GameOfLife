@@ -3,4 +3,3 @@ main.o
 .vscode/
 images/*
 !images/.gitkeep
-output.gif

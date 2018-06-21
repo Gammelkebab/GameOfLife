@@ -1,6 +1,7 @@
 #!/bin/bash
-#git pull
-#git commit -a -m "automated Commit"
-#git push
-ssh nhmq$1@login.cluster.uni-hannover.de 'bash -s' < echo ls
-#git pull
+if [ $# -eq 0 ]
+then
+ echo "Usage: ./run USERNAME"
+else
+ ssh nhmq$1@login.cluster.uni-hannover.de './GameOfLife/RunAtCluster'
+fi

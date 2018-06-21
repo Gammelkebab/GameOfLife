@@ -2,4 +2,5 @@
 git pull
 git commit -a -m "automated Commit"
 git push
-ssh $1@login.cluster.uni-hannover.de 'bash -s' < RunAtCluster
+ssh nhmq$1@login.cluster.uni-hannover.de 'bash -s' < RunAtCluster
+git pull

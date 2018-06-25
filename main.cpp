@@ -7,6 +7,8 @@
 
 #include <cstring>
 
+#include <mpi.h>
+
 #define SMALL //uses small resolution, less iterations for testing
 
 #ifndef SMALL
@@ -20,6 +22,13 @@
 #endif
 
 using namespace std;
+
+typedef struct Grid
+{
+    int x, y;
+    int overall_starting_x, overall_starting_y;
+    int width, height;
+} Grid;
 
 //rules for Game of Life
 //you can change this function, but the rules have to remain the same
@@ -192,41 +201,53 @@ void writeFrame(unsigned char **grid, int i)
     fclose(outfile);
 }
 
-int main()
+int main(int argc, char **argv)
 {
     //time measurement
     double elapsed = 0;
     struct timeval begin, end;
 
-    //create 2 2D arrays, current step and next step
-    unsigned char **grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
-    unsigned char **nextGrid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
-    unsigned char **swap;
+    MPI_Init(&argc, &argv);
 
-    //fill grid randomly and create the first frame
-    random(grid);
-    writeFrame(grid, 0);
+    int rank, threads;
 
-    gettimeofday(&begin, NULL);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &threads);
 
-    for (int i = 0; i < FRAMES; ++i)
+    if (rank == 0)
     {
-        //calculate next step
-        step(grid, nextGrid);
+        //create 2 2D arrays, current step and next step
+        unsigned char **grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
+        unsigned char **nextGrid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
+        unsigned char **swap;
 
-        //swap pointers
-        swap = grid;
-        grid = nextGrid;
-        nextGrid = swap;
+        //fill grid randomly and create the first frame
+        random(grid);
+        writeFrame(grid, 0);
 
-        //add frame to video
-        writeFrame(grid, i + 1);
+        gettimeofday(&begin, NULL);
+
+        for (int i = 0; i < FRAMES; ++i)
+        {
+            //calculate next step
+            step(grid, nextGrid);
+
+            //swap pointers
+            swap = grid;
+            grid = nextGrid;
+            nextGrid = swap;
+
+            //add frame to video
+            writeFrame(grid, i + 1);
+        }
+
+        delete[] grid;
+        delete[] nextGrid;
     }
+
+    MPI_Finalize();
 
     gettimeofday(&end, NULL);
     elapsed += (end.tv_sec - begin.tv_sec) + ((end.tv_usec - begin.tv_usec) / 1000000.0);
     printf("Runtime: %.5fs\n", elapsed);
-
-    delete[] grid;
-    delete[] nextGrid;
 }

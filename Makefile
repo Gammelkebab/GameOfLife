@@ -1,4 +1,4 @@
-CC=g++
+CC=mpic++
 CFLAGS = -g -Wall -Wextra -O3
 
 OBJ = main.o

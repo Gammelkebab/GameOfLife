@@ -23,12 +23,210 @@
 
 using namespace std;
 
-typedef struct Grid
+typedef struct Pixel
 {
     int x, y;
-    int overall_starting_x, overall_starting_y;
+} Pixel;
+
+typedef unsigned char **Grid;
+
+/**
+ * Information on the Overall world
+ */
+class World
+{
+  public:
     int width, height;
-} Grid;
+    int rows, cols;
+
+  public:
+    World(int width, int height, int block_amt) : width(width), height(height)
+    {
+        // Distributes rows and columns proportionally to the overall pixel aspect ratio
+        double rows_tmp = sqrt(block_amt * ((double)height / width));
+        rows = floor(rows_tmp);
+        cols = floor(block_amt / rows_tmp);
+
+        // Try to create one more row or column (Might be possible due to flooring)
+        r1 = (rows + 1) * cols;
+        c1 = rows * (cols + 1);
+        if (r1 <= block_amt && c1 <= block_amt)
+        {
+            if (r1 > c1)
+            {
+                rows++;
+            }
+            else
+            {
+                cols++;
+            }
+        }
+        else if (r1 <= block_amt)
+        {
+            rows++;
+        }
+        else if (c1 <= block_amt)
+        {
+            cols++;
+        }
+    }
+};
+
+class Block
+{
+  public:
+    World world;
+
+  public:
+    int x, y;                     // x and y position of the block (in blocks not pixels)
+    int width, height;            // height and width of the block
+    Pixel starting_x, starting_y; // upper left corner x and y position (pixels)
+
+  public:
+    Grid grid; // The actual data of all the assigned pixels
+               // REMEMBER! this grid has the borders stored as well
+               // => it has size (width + 2, height + 2)
+               // => the 'real' pxiels go from (1, 1) up to (width, height)
+    Grid next_grid;
+
+  public:
+    Block(int block_num, int block_amt)
+    {
+        world = new World(GRIDSIZE_X, GRIDSIZE_Y, block_amt);
+
+        // TODO group nearby blocks on same cluster node
+        if (block_num >= world.rows * world.cols)
+        {
+            // this block does not have any pixels assigned to it
+            x = -1;
+            y = -1;
+        }
+        else
+        {
+            x = block_num % world.cols;
+            y = block_num / world.cols;
+        }
+
+        // calculate the pixels assigned to this block
+        // takes care of additional pixels from remainder of splitting
+        width = world.width / world.cols;
+        if (x < world.width % world.cols)
+        {
+            width++;
+        }
+        height = world.height / world.rows;
+        if (y < world.height % world.rows)
+        {
+            height++;
+        }
+
+        // calculate the position of the first (upper left) pixel assigned to this block
+        // takes care of additional pixels from remainder of splitting
+        starting_x = x * (world.width / world.cols);
+        starting_x += min(x - 1, world.width % world.cols); // add all remainder pixels before this block
+        starting_y = y * (world.height / world.rows);
+        starting_y += min(y - 1, world.height % world.rows);
+
+        grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
+        next_grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
+
+        randomize();
+    }
+
+    // TODO
+    void deleteBlock()
+    {
+        delete[] grid;
+        delete[] nextGrid;
+    }
+
+  public:
+    //console output, small grid is preferable
+    void printGrid(unsigned char **grid)
+    {
+        // Print the current blocks adress
+        printf("Block [%d, %d]:\n", x, y);
+
+        // Print all the assigned pixels without the borders
+        for (int y = 1; y <= height; ++y)
+        {
+            for (int x = 1; x <= width; ++x)
+            {
+                if (grid[y][x])
+                    printf("X ");
+                else
+                    printf("- ");
+            }
+            printf("\n");
+        }
+        printf("\n\n");
+    }
+
+    //fill the grid randomly with ~35% alive
+    void randomize(unsigned char **grid)
+    {
+        srand(time(NULL));
+        for (int x = 1; x <= width; ++x)
+        {
+            for (int y = 1; y <= height; ++y)
+            {
+                grid[y][x] = (int)rand() % 100 < 35 ? 1 : 0;
+            }
+        }
+    }
+
+    void write() {}
+
+    send(int target_block, int tag, char **data);
+    send(int source_block, int tag, char **data);
+    wrap();
+
+    /**
+     * 
+     */
+    // REMINDER! Use tags for directions of communication, so barriers can be avoided
+    void communicate()
+    {
+        send(x + 1, 0, wrap());
+    }
+
+    /**
+     * next evolution
+     * iterate over each cell, count neighbours and apply the rules
+     * if a cell is alive/dies depends only on the previous step
+     */
+    void step()
+    {
+        int neighbours;
+        for (int y = 1; y <= height; ++y)
+        {
+            for (int x = 1; x <= width; ++x)
+            {
+                neighbours = getNeighbours(grid, x, y);
+                next_grid[y][x] = isAlive(neighbours, grid[y][x]);
+            }
+        }
+
+        //swap pointers
+        unsigned char **swap = grid;
+        grid = nextGrid;
+        nextGrid = swap;
+    }
+
+    /* 
+     * MPI Additions to the normal step:
+     * There are 3 parts to every step:
+     * 1. write the current grid to memory (first step because it has to be done for the initial random grid)
+     * 2. communicate all border pixels
+     * 3. do the actual step algorithm
+     */
+    void step_mpi()
+    {
+        write();
+        communicate();
+        step(grid, next_grid);
+    }
+};
 
 //rules for Game of Life
 //you can change this function, but the rules have to remain the same
@@ -62,46 +260,13 @@ int getNeighbours(unsigned char **grid, int x, int y)
     return sum;
 }
 
-//next evolution
-//iterate over each cell, count neighbours and apply the rules
-//if a cell is alive/dies depends only on the previous step
-void step(unsigned char **grid, unsigned char **nextGrid)
-{
-    int neighbours;
-    for (int y = 0; y < GRIDSIZE_Y; ++y)
-    {
-        for (int x = 0; x < GRIDSIZE_X; ++x)
-        {
-            neighbours = getNeighbours(grid, x, y);
-            nextGrid[y][x] = isAlive(neighbours, grid[y][x]);
-        }
-    }
-}
-
-//console output, small grid is preferable
-void printGrid(unsigned char **grid)
-{
-    for (int y = 0; y < GRIDSIZE_Y; ++y)
-    {
-        for (int x = 0; x < GRIDSIZE_X; ++x)
-        {
-            if (grid[y][x])
-                printf("X ");
-            else
-                printf("- ");
-        }
-        printf("\n");
-    }
-    printf("\n\n");
-}
-
 //allocate a 2D array
-unsigned char **array2D(int x, int y)
+unsigned char **array2D(int width, int height)
 {
-    unsigned char **array = new unsigned char *[y]();
+    unsigned char **array = new unsigned char *[height]();
     for (int i = 0; i < y; ++i)
     {
-        array[i] = new unsigned char[x]();
+        array[i] = new unsigned char[width]();
     }
     return array;
 }
@@ -140,19 +305,6 @@ void pentadecathlon(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
     }
     grid[1 + offset_Y][1 + offset_X] = 0;
     grid[1 + offset_Y][6 + offset_X] = 0;
-}
-
-//fill the grid randomly with ~35% alive
-void random(unsigned char **grid)
-{
-    srand(time(NULL));
-    for (int x = 0; x < GRIDSIZE_X; ++x)
-    {
-        for (int y = 0; y < GRIDSIZE_Y; ++y)
-        {
-            grid[y][x] = (int)rand() % 100 < 35 ? 1 : 0;
-        }
-    }
 }
 
 //creates a .pbm file displaying the current grid
@@ -207,44 +359,26 @@ int main(int argc, char **argv)
     double elapsed = 0;
     struct timeval begin, end;
 
+    gettimeofday(&begin, NULL);
+
     MPI_Init(&argc, &argv);
-
-    int rank, threads;
-
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &threads);
-
-    if (rank == 0)
     {
-        //create 2 2D arrays, current step and next step
-        unsigned char **grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
-        unsigned char **nextGrid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
-        unsigned char **swap;
+        int block_amt, block_num;
 
-        //fill grid randomly and create the first frame
-        random(grid);
-        writeFrame(grid, 0);
+        MPI_Comm_rank(MPI_COMM_WORLD, &block_num);
+        MPI_Comm_size(MPI_COMM_WORLD, &block_amt);
 
-        gettimeofday(&begin, NULL);
+        // gettimeofday(&begin, NULL);
+
+        Block block = new Block(block_num, block_amt);
 
         for (int i = 0; i < FRAMES; ++i)
         {
-            //calculate next step
-            step(grid, nextGrid);
-
-            //swap pointers
-            swap = grid;
-            grid = nextGrid;
-            nextGrid = swap;
-
-            //add frame to video
-            writeFrame(grid, i + 1);
+            block.step_mpi();
         }
 
-        delete[] grid;
-        delete[] nextGrid;
+        // TODO delete block
     }
-
     MPI_Finalize();
 
     gettimeofday(&end, NULL);

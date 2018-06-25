@@ -23,10 +23,9 @@
 
 using namespace std;
 
-typedef struct Pixel
-{
-    int x, y;
-} Pixel;
+unsigned char **array2D(int width, int height);
+int getNeighbours(unsigned char **grid, int x, int y);
+int isAlive(int neighbours, unsigned char cell);
 
 typedef unsigned char **Grid;
 
@@ -43,13 +42,13 @@ class World
     World(int width, int height, int block_amt) : width(width), height(height)
     {
         // Distributes rows and columns proportionally to the overall pixel aspect ratio
-        double rows_tmp = sqrt(block_amt * ((double)height / width));
+        float rows_tmp = sqrt(block_amt * ((float)height / width));
         rows = floor(rows_tmp);
         cols = floor(block_amt / rows_tmp);
 
         // Try to create one more row or column (Might be possible due to flooring)
-        r1 = (rows + 1) * cols;
-        c1 = rows * (cols + 1);
+        int r1 = (rows + 1) * cols;
+        int c1 = rows * (cols + 1);
         if (r1 <= block_amt && c1 <= block_amt)
         {
             if (r1 > c1)
@@ -75,12 +74,12 @@ class World
 class Block
 {
   public:
-    World world;
+    World *world;
 
   public:
-    int x, y;                     // x and y position of the block (in blocks not pixels)
-    int width, height;            // height and width of the block
-    Pixel starting_x, starting_y; // upper left corner x and y position (pixels)
+    int x, y;                   // x and y position of the block (in blocks not pixels)
+    int width, height;          // height and width of the block
+    int starting_x, starting_y; // upper left corner x and y position (pixels)
 
   public:
     Grid grid; // The actual data of all the assigned pixels
@@ -95,7 +94,7 @@ class Block
         world = new World(GRIDSIZE_X, GRIDSIZE_Y, block_amt);
 
         // TODO group nearby blocks on same cluster node
-        if (block_num >= world.rows * world.cols)
+        if (block_num >= world->rows * world->cols)
         {
             // this block does not have any pixels assigned to it
             x = -1;
@@ -103,29 +102,29 @@ class Block
         }
         else
         {
-            x = block_num % world.cols;
-            y = block_num / world.cols;
+            x = block_num % world->cols;
+            y = block_num / world->cols;
         }
 
         // calculate the pixels assigned to this block
         // takes care of additional pixels from remainder of splitting
-        width = world.width / world.cols;
-        if (x < world.width % world.cols)
+        width = world->width / world->cols;
+        if (x < world->width % world->cols)
         {
             width++;
         }
-        height = world.height / world.rows;
-        if (y < world.height % world.rows)
+        height = world->height / world->rows;
+        if (y < world->height % world->rows)
         {
             height++;
         }
 
         // calculate the position of the first (upper left) pixel assigned to this block
         // takes care of additional pixels from remainder of splitting
-        starting_x = x * (world.width / world.cols);
-        starting_x += min(x - 1, world.width % world.cols); // add all remainder pixels before this block
-        starting_y = y * (world.height / world.rows);
-        starting_y += min(y - 1, world.height % world.rows);
+        starting_x = x * (world->width / world->cols);
+        starting_x += min(x - 1, world->width % world->cols); // add all remainder pixels before this block
+        starting_y = y * (world->height / world->rows);
+        starting_y += min(y - 1, world->height % world->rows);
 
         grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
         next_grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
@@ -137,7 +136,7 @@ class Block
     void deleteBlock()
     {
         delete[] grid;
-        delete[] nextGrid;
+        delete[] next_grid;
     }
 
   public:
@@ -163,7 +162,7 @@ class Block
     }
 
     //fill the grid randomly with ~35% alive
-    void randomize(unsigned char **grid)
+    void randomize()
     {
         srand(time(NULL));
         for (int x = 1; x <= width; ++x)
@@ -177,9 +176,9 @@ class Block
 
     void write() {}
 
-    send(int target_block, int tag, char **data);
-    send(int source_block, int tag, char **data);
-    wrap();
+    void send(int target_block, int tag, char *buffer) {}
+    void recv(int source_block, int tag, char *buffer) {}
+    void wrap(char *buffer) {}
 
     /**
      * 
@@ -187,7 +186,10 @@ class Block
     // REMINDER! Use tags for directions of communication, so barriers can be avoided
     void communicate()
     {
-        send(x + 1, 0, wrap());
+        int buffer_size = 0;
+        char buffer[buffer_size];
+        wrap(buffer);
+        send(x + 1, 0, buffer);
     }
 
     /**
@@ -209,8 +211,8 @@ class Block
 
         //swap pointers
         unsigned char **swap = grid;
-        grid = nextGrid;
-        nextGrid = swap;
+        grid = next_grid;
+        next_grid = swap;
     }
 
     /* 
@@ -224,9 +226,16 @@ class Block
     {
         write();
         communicate();
-        step(grid, next_grid);
+        step();
     }
 };
+
+/*
+int min(int x, int y)
+{
+    return x < y ? x : y;
+}
+*/
 
 //rules for Game of Life
 //you can change this function, but the rules have to remain the same
@@ -264,7 +273,7 @@ int getNeighbours(unsigned char **grid, int x, int y)
 unsigned char **array2D(int width, int height)
 {
     unsigned char **array = new unsigned char *[height]();
-    for (int i = 0; i < y; ++i)
+    for (int i = 0; i < height; ++i)
     {
         array[i] = new unsigned char[width]();
     }
@@ -370,11 +379,11 @@ int main(int argc, char **argv)
 
         // gettimeofday(&begin, NULL);
 
-        Block block = new Block(block_num, block_amt);
+        Block *block = new Block(block_num, block_amt);
 
         for (int i = 0; i < FRAMES; ++i)
         {
-            block.step_mpi();
+            block->step_mpi();
         }
 
         // TODO delete block

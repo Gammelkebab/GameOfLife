@@ -80,6 +80,7 @@ class Block
     int x, y;                   // x and y position of the block (in blocks not pixels)
     int width, height;          // height and width of the block
     int starting_x, starting_y; // upper left corner x and y position (pixels)
+    bool first_row, first_col, last_row, last_col;
 
   public:
     Grid grid; // The actual data of all the assigned pixels
@@ -129,6 +130,11 @@ class Block
         grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
         next_grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
 
+        first_row = x == 0;
+        first_col = y == 0;
+        last_row = x == world->cols - 1;
+        last_col = y == world->rows - 1;
+
         randomize();
     }
 
@@ -176,9 +182,201 @@ class Block
 
     void write() {}
 
-    void send(int target_block, int tag, char *buffer) {}
-    void recv(int source_block, int tag, char *buffer) {}
-    void wrap(char *buffer) {}
+    void send(int target_block, int tag, char *buffer, int element_count)
+    {
+        MPI_Request request;
+        MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD);
+    }
+
+    void recv(int source_block, int tag, char *buffer, int element_count)
+    {
+        MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+
+    void wrap_row(char *buffer, int row, int count)
+    {
+        for (int x = 1; x <= width; x++)
+        {
+            buffer[x - 1] = grid[row][x];
+        }
+    }
+
+    void wrap_col(char *buffer, int col, int count)
+    {
+        for (int y = 1; y <= height; y++)
+        {
+            buffer[y - 1] = grid[y][col];
+        }
+    }
+
+    void wrap_corner(char *buffer, int x, int y)
+    {
+        buffer[0] = grid[y][x];
+    }
+
+    /* Functions calculating the surrounding block numbers */
+
+    int position_to_block_number(int x, int y)
+    {
+        return y * world->cols + x;
+    }
+
+    int north()
+    {
+        if (first_row)
+        {
+            // above first row is last row
+            return position_to_block_number(x, world->rows - 1);
+        }
+        else
+        {
+            return position_to_block_number(x, y - 1);
+        }
+    }
+
+    int south()
+    {
+        if (last_row)
+        {
+            // below last row is first row
+            return position_to_block_number(x, 0);
+        }
+        else
+        {
+            return position_to_block_number(x, y + 1);
+        }
+    }
+
+    int west()
+    {
+        if (first_col)
+        {
+            // left from first col is last col
+            return position_to_block_number(world->cols - 1, y);
+        }
+        else
+        {
+            return position_to_block_number(x - 1, y);
+        }
+    }
+
+    int east()
+    {
+        if (last_col)
+        {
+            // right from last col is first col
+            return position_to_block_number(0, y);
+        }
+        else
+        {
+            return position_to_block_number(x + 1, y);
+        }
+    }
+
+    int north_west()
+    {
+        if (first_row)
+        {
+            if (first_col)
+            {
+                return position_to_block_number(world->cols, world->rows);
+            }
+            else
+            {
+                return position_to_block_number(x - 1, world->rows);
+            }
+        }
+        else
+        {
+            return position_to_block_number(x - 1, y - 1);
+        }
+    }
+
+    int north_east()
+    {
+        if (first_row)
+        {
+            if (last_col)
+            {
+                return position_to_block_number(0, world->rows);
+            }
+            else
+            {
+                return position_to_block_number(x + 1, world->rows);
+            }
+        }
+        else
+        {
+            return position_to_block_number(x + 1, y - 1);
+        }
+    }
+
+    int south_west()
+    {
+        if (last_row)
+        {
+            if (first_col)
+            {
+                return position_to_block_number(world->cols, 0);
+            }
+            else
+            {
+                return position_to_block_number(x - 1, 0);
+            }
+        }
+        else
+        {
+            return position_to_block_number(x - 1, y + 1);
+        }
+    }
+
+    int south_east()
+    {
+        if (last_row)
+        {
+            if (last_col)
+            {
+                return position_to_block_number(0, 0);
+            }
+            else
+            {
+                return position_to_block_number(x + 1, 0);
+            }
+        }
+        else
+        {
+            return position_to_block_number(x + 1, y + 1);
+        }
+    }
+
+    int neighbour_number(Border_direction dir)
+    {
+        switch(dir)
+    }
+
+    enum Border_direction
+    {
+        NORTH,
+        SOUTH,
+        EAST,
+        WEST,
+        NORTH_WEST,
+        NORTH_EAST,
+        SOUTH_WEST,
+        SOUTH_EAST
+    };
+
+    void wrap(char *buffer, Border_direction dir)
+    {
+        switch (dir)
+        {
+        case NORTH:
+            wrap_col(buffer, , width);
+            break;
+        case SOUTH:
+            wrap_col(buffer, )
+        }
+    }
 
     /**
      * 
@@ -186,10 +384,19 @@ class Block
     // REMINDER! Use tags for directions of communication, so barriers can be avoided
     void communicate()
     {
-        int buffer_size = 0;
-        char buffer[buffer_size];
-        wrap(buffer);
-        send(x + 1, 0, buffer);
+        int buffer_size = max(width, height);
+        char send_buffer[buffer_size];
+        char recv_buffer[buffer_size];
+
+        wrap_row(send_buffer, 1, width);
+        if (x % 2 == 0)
+        {
+            send(;
+        }
+        else
+        {
+            recv;
+        }
     }
 
     /**

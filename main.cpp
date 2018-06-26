@@ -77,10 +77,10 @@ class Block
     World *world;
 
   public:
-    int x, y;                   // x and y position of the block (in blocks not pixels)
-    int width, height;          // height and width of the block
-    int starting_x, starting_y; // upper left corner x and y position (pixels)
-    bool first_row, first_col, last_row, last_col;
+    int x, y;                                      // x and y position of the block (in blocks not pixels)
+    int width, height;                             // height and width of the block (without borders)
+    int starting_x, starting_y;                    // upper left corner x and y position (pixels)
+    bool first_row, first_col, last_row, last_col; // booleans indicating specific block positions
 
   public:
     Grid grid; // The actual data of all the assigned pixels
@@ -127,8 +127,8 @@ class Block
         starting_y = y * (world->height / world->rows);
         starting_y += min(y - 1, world->height % world->rows);
 
-        grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
-        next_grid = array2D(GRIDSIZE_X, GRIDSIZE_Y);
+        grid = array2D(width + 2, height + 2);
+        next_grid = array2D(width + 2, height + 2);
 
         first_row = x == 0;
         first_col = y == 0;
@@ -180,38 +180,13 @@ class Block
         }
     }
 
-    void write() {}
-
-    void send(int target_block, int tag, char *buffer, int element_count)
+    void write(char *filename, unsigned char *buffer, int count, )
     {
-        MPI_Request request;
-        MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD);
-    }
-
-    void recv(int source_block, int tag, char *buffer, int element_count)
-    {
-        MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
-
-    void wrap_row(char *buffer, int row, int count)
-    {
-        for (int x = 1; x <= width; x++)
-        {
-            buffer[x - 1] = grid[row][x];
-        }
-    }
-
-    void wrap_col(char *buffer, int col, int count)
-    {
-        for (int y = 1; y <= height; y++)
-        {
-            buffer[y - 1] = grid[y][col];
-        }
-    }
-
-    void wrap_corner(char *buffer, int x, int y)
-    {
-        buffer[0] = grid[y][x];
+        MPI_File fh;
+        MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+        MPI_File_write_at_all(fh, offset, buffer, count, MPI_UNSIGNED_CHAR, status);
+        MPI_Barrier(MPI_COMM_WORLD); // TODO remove barrier
+        MPI_File_close(&fh);
     }
 
     /* Functions calculating the surrounding block numbers */
@@ -349,11 +324,6 @@ class Block
         }
     }
 
-    int neighbour_number(Border_direction dir)
-    {
-        switch(dir)
-    }
-
     enum Border_direction
     {
         NORTH,
@@ -366,36 +336,243 @@ class Block
         SOUTH_EAST
     };
 
+    Border_direction opposite_direction(Border_direction dir)
+    {
+        switch (dir)
+        {
+        case NORTH:
+            return SOUTH;
+        case SOUTH:
+            return NORTH;
+        case EAST:
+            return WEST;
+        case WEST:
+            return EAST;
+        case NORTH_WEST:
+            return SOUTH_EAST;
+        case NORTH_EAST:
+            return SOUTH_WEST;
+        case SOUTH_WEST:
+            return NORTH_EAST;
+        case SOUTH_EAST:
+            return NORTH_WEST;
+        }
+    }
+
+    int neighbour_number(Border_direction dir)
+    {
+        switch (dir)
+        {
+        case NORTH:
+            return north();
+        case SOUTH:
+            return south();
+        case EAST:
+            return east();
+        case WEST:
+            return west();
+        case NORTH_WEST:
+            return north_west();
+        case NORTH_EAST:
+            return north_east();
+        case SOUTH_WEST:
+            return south_west();
+        case SOUTH_EAST:
+            return south_west();
+        }
+    }
+
+    /* Wrap functions */
+
+    int wrap_row(char *buffer, int row, int count)
+    {
+        for (int x = 1; x <= width; x++)
+        {
+            buffer[x - 1] = grid[row][x];
+        }
+    }
+
+    int wrap_col(char *buffer, int col, int count)
+    {
+        for (int y = 1; y <= height; y++)
+        {
+            buffer[y - 1] = grid[y][col];
+        }
+    }
+
+    int wrap_corner(char *buffer, int x, int y)
+    {
+        buffer[0] = grid[y][x];
+    }
+
     void wrap(char *buffer, Border_direction dir)
     {
         switch (dir)
         {
         case NORTH:
-            wrap_col(buffer, , width);
+            wrap_row(buffer, 0, width);
             break;
         case SOUTH:
-            wrap_col(buffer, )
+            wrap_row(buffer, height + 1, width);
+            break;
+        case EAST:
+            wrap_col(buffer, 0, height);
+            break;
+        case WEST:
+            wrap_col(buffer, width + 1, height);
+            break;
+        case NORTH_WEST:
+            wrap_corner(buffer, 0, 0);
+            break;
+        case NORTH_EAST:
+            wrap_corner(buffer, width + 1, 0);
+            break;
+        case SOUTH_WEST:
+            wrap_corner(buffer, 0, height + 1);
+            break;
+        case SOUTH_EAST:
+            wrap_corner(buffer, width + 1, height + 1);
+            break;
         }
     }
 
+    /* Unwrap functions */
+
+    void unwrap_row(char *buffer, int row, int count)
+    {
+        for (int x = 1; x <= width; x++)
+        {
+            grid[row][x] = buffer[x - 1];
+        }
+    }
+
+    void unwrap_col(char *buffer, int col, int count)
+    {
+        for (int y = 1; y <= height; y++)
+        {
+            grid[y][col] = buffer[y - 1];
+        }
+    }
+
+    void unwrap_corner(char *buffer, int x, int y)
+    {
+        grid[y][x] = buffer[0];
+    }
+
+    void unwrap(char *buffer, Border_direction dir)
+    {
+        switch (dir)
+        {
+        case NORTH:
+            unwrap_row(buffer, 0, width);
+            break;
+        case SOUTH:
+            unwrap_row(buffer, height + 1, width);
+            break;
+        case EAST:
+            unwrap_col(buffer, 0, height);
+            break;
+        case WEST:
+            unwrap_col(buffer, width + 1, height);
+            break;
+        case NORTH_WEST:
+            unwrap_corner(buffer, 0, 0);
+            break;
+        case NORTH_EAST:
+            unwrap_corner(buffer, width + 1, 0);
+            break;
+        case SOUTH_WEST:
+            unwrap_corner(buffer, 0, height + 1);
+            break;
+        case SOUTH_EAST:
+            unwrap_corner(buffer, width + 1, height + 1);
+            break;
+        }
+    }
+
+    /* element count */
+
+    int count_by_direction(Border_direction dir)
+    {
+        if (dir == NORTH || dir == SOUTH)
+        {
+            return width;
+        }
+        else if (dir == EAST || dir == WEST)
+        {
+            return height;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+    /* send und receive */
+
+    void send(Border_direction target_dir, char *buffer, int element_count)
+    {
+        MPI_Request request;
+        int target_block = neighbour_number(target_dir);
+        MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, target_dir, MPI_COMM_WORLD);
+    }
+
+    void recv(Border_direction source_dir, char *buffer, int element_count)
+    {
+        int source_block = neighbour_number(source_dir);
+        MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, source_dir, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+
     /**
-     * 
+     * TODO comment
      */
     // REMINDER! Use tags for directions of communication, so barriers can be avoided
     void communicate()
     {
+        // create communication buffers
         int buffer_size = max(width, height);
-        char send_buffer[buffer_size];
-        char recv_buffer[buffer_size];
+        char buffer[buffer_size];
 
-        wrap_row(send_buffer, 1, width);
-        if (x % 2 == 0)
+        // TODO make unblocking send possible
+        for (int i = NORTH; i <= SOUTH_EAST; i++)
         {
-            send(;
-        }
-        else
-        {
-            recv;
+            Border_direction dir = (Border_direction)i;
+            Border_direction opp = opposite_direction(dir);
+
+            if (dir == NORTH || dir == SOUTH)
+            {
+                if (y % 2 == 0)
+                {
+                    wrap(buffer, dir);
+                    int count = count_by_direction(dir);
+                    send(dir, buffer, count);
+                    recv(opp, buffer, count);
+                }
+                else
+                {
+                    int count = count_by_direction(dir);
+                    recv(opp, buffer, count);
+                    wrap(buffer, dir);
+                    send(dir, buffer, count);
+                }
+            }
+            else
+            {
+                if (x % 2 == 0)
+                {
+                    wrap(buffer, dir);
+                    int count = count_by_direction(dir);
+                    send(dir, buffer, count);
+                    recv(opp, buffer, count);
+                }
+                else
+                {
+                    int count = count_by_direction(dir);
+                    recv(opp, buffer, count);
+                    wrap(buffer, dir);
+                    send(dir, buffer, count);
+                }
+            }
         }
     }
 

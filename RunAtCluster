@@ -1,5 +1,8 @@
 #!/bin/bash
+if [ -d GameOfLife ]
+then
 cd GameOfLife
+fi
 git pull -f
 ./Script.sh
 

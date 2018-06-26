@@ -1,7 +1,7 @@
 CC=mpic++
 CFLAGS = -g -Wall -Wextra -O3
 
-OBJ = main.o
+OBJ = main.o block.o world.o
 BIN = main
 
 #first target

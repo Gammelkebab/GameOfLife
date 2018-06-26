@@ -191,6 +191,18 @@ void Block::write(int step_number)
 
     MPI_File fh;
     MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+
+    // Create the header lines
+    char *header = new char[100];
+    sprintf(header, "P4\n%d %d\n", GRIDSIZE_X, GRIDSIZE_Y);
+    int count = strlen(header);
+    // Let thread 0 write the header to file
+    if (x == 0 && y == 0)
+    {
+        printf("Writing Header for %02d - Gridsize %d x %d\n", step_number, GRIDSIZE_X, GRIDSIZE_Y);
+        MPI_File_write_at(fh, 0, header, count, MPI_CHAR, MPI_STATUS_IGNORE);
+    }
+
     write_grid(fh);
     MPI_Barrier(MPI_COMM_WORLD); // TODO remove barrier
     MPI_File_close(&fh);

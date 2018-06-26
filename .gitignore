@@ -1,5 +1,5 @@
 main
-main.o
+*.o
 .vscode/
 images/*
 !images/.gitkeep

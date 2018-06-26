@@ -4,6 +4,8 @@
 #include "world.h"
 #include <mpi.h>
 
+#define SMALL //uses small resolution, less iterations for testing
+
 #ifndef SMALL
 #define GRIDSIZE_X 1920
 #define GRIDSIZE_Y 1080

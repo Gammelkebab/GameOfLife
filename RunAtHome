@@ -1,1 +1,0 @@
-make && ./main && rm output.gif && ./create_video.sh

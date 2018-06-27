@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < FRAMES; ++i)
     {
-        //block->printGrid();
+        block->printGrid();
         block->write(i);
         if (i > 20 && i <= 40) {
             block->fill(0);

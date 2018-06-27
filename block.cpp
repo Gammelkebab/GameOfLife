@@ -233,11 +233,11 @@ void Block::buffer_row(unsigned char *buffer, int y)
 void Block::write_grid(MPI_File fh, int header_size)
 {
     // Buffer stores one bit for every char -> 1/8 of size, but ceiled
-    int buffer_size = width / 8;
+    int buffer_size = ceil(width / 8.0); // TODO korrekt?
     unsigned char buffer[buffer_size];
     for (int y = 1; y <= height; y++)
     {
-        memset(buffer, 0, buffer_size * sizeof(char));
+        memset(buffer, 0, buffer_size * sizeof(unsigned char));
         buffer_row(buffer, y);
         // The position of the first pixel of the current row
         // y - 1 because of the border
@@ -331,78 +331,90 @@ int Block::east()
 
 int Block::north_west()
 {
-    if (first_row)
+    int other_x, other_y;
+    if (first_col)
     {
-        if (first_col)
-        {
-            return position_to_block_number(world->cols, world->rows);
-        }
-        else
-        {
-            return position_to_block_number(x - 1, world->rows);
-        }
+        other_x = world->cols - 1;
     }
     else
     {
-        return position_to_block_number(x - 1, y - 1);
+        other_x = x - 1;
     }
+    if (first_row)
+    {
+        other_y = world->rows - 1;
+    }
+    else
+    {
+        other_y = y - 1;
+    }
+    return position_to_block_number(other_x, other_y);
 }
 
 int Block::north_east()
 {
-    if (first_row)
+    int other_x, other_y;
+    if (last_col)
     {
-        if (last_col)
-        {
-            return position_to_block_number(0, world->rows);
-        }
-        else
-        {
-            return position_to_block_number(x + 1, world->rows);
-        }
+        other_x = 0;
     }
     else
     {
-        return position_to_block_number(x + 1, y - 1);
+        other_x = x + 1;
     }
+    if (first_row)
+    {
+        other_y = world->rows - 1;
+    }
+    else
+    {
+        other_y = y - 1;
+    }
+    return position_to_block_number(other_x, other_y);
 }
 
 int Block::south_west()
 {
-    if (last_row)
+    int other_x, other_y;
+    if (first_col)
     {
-        if (first_col)
-        {
-            return position_to_block_number(world->cols, 0);
-        }
-        else
-        {
-            return position_to_block_number(x - 1, 0);
-        }
+        other_x = world->cols - 1;
     }
     else
     {
-        return position_to_block_number(x - 1, y + 1);
+        other_x = x - 1;
     }
+    if (last_row)
+    {
+        other_y = 0;
+    }
+    else
+    {
+        other_y = y + 1;
+    }
+    return position_to_block_number(other_x, other_y);
 }
 
 int Block::south_east()
 {
-    if (last_row)
+    int other_x, other_y;
+    if (last_col)
     {
-        if (last_col)
-        {
-            return position_to_block_number(0, 0);
-        }
-        else
-        {
-            return position_to_block_number(x + 1, 0);
-        }
+        other_x = 0;
     }
     else
     {
-        return position_to_block_number(x + 1, y + 1);
+        other_x = x + 1;
     }
+    if (last_row)
+    {
+        other_y = 0;
+    }
+    else
+    {
+        other_y = y + 1;
+    }
+    return position_to_block_number(other_x, other_y);
 }
 
 int Block::neighbour_number(Border_direction dir)
@@ -424,7 +436,7 @@ int Block::neighbour_number(Border_direction dir)
     case SOUTH_WEST:
         return south_west();
     case SOUTH_EAST:
-        return south_west();
+        return south_east();
     default:
         return -1;
     }
@@ -432,7 +444,7 @@ int Block::neighbour_number(Border_direction dir)
 
 /* Wrap functions */
 
-void Block::wrap_row(char *buffer, int row)
+void Block::wrap_row(unsigned char *buffer, int row)
 {
     for (int x = 1; x <= width; x++)
     {
@@ -440,7 +452,7 @@ void Block::wrap_row(char *buffer, int row)
     }
 }
 
-void Block::wrap_col(char *buffer, int col)
+void Block::wrap_col(unsigned char *buffer, int col)
 {
     for (int y = 1; y <= height; y++)
     {
@@ -448,12 +460,12 @@ void Block::wrap_col(char *buffer, int col)
     }
 }
 
-void Block::wrap_corner(char *buffer, int x, int y)
+void Block::wrap_corner(unsigned char *buffer, int x, int y)
 {
     buffer[0] = grid[y][x];
 }
 
-void Block::wrap(char *buffer, Border_direction dir)
+void Block::wrap(unsigned char *buffer, Border_direction dir)
 {
     switch (dir)
     {
@@ -486,7 +498,7 @@ void Block::wrap(char *buffer, Border_direction dir)
 
 /* Unwrap functions */
 
-void Block::unwrap_row(char *buffer, int row)
+void Block::unwrap_row(unsigned char *buffer, int row)
 {
     for (int x = 1; x <= width; x++)
     {
@@ -494,7 +506,7 @@ void Block::unwrap_row(char *buffer, int row)
     }
 }
 
-void Block::unwrap_col(char *buffer, int col)
+void Block::unwrap_col(unsigned char *buffer, int col)
 {
     for (int y = 1; y <= height; y++)
     {
@@ -502,12 +514,12 @@ void Block::unwrap_col(char *buffer, int col)
     }
 }
 
-void Block::unwrap_corner(char *buffer, int x, int y)
+void Block::unwrap_corner(unsigned char *buffer, int x, int y)
 {
     grid[y][x] = buffer[0];
 }
 
-void Block::unwrap(char *buffer, Border_direction dir)
+void Block::unwrap(unsigned char *buffer, Border_direction dir)
 {
     switch (dir)
     {
@@ -558,14 +570,14 @@ int Block::count_by_direction(Border_direction dir)
 
 /* send und receive */
 
-void Block::send(Border_direction target_dir, char *buffer, int element_count)
+void Block::send(Border_direction target_dir, unsigned char *buffer, int element_count)
 {
     int target_block = neighbour_number(target_dir);
     int tag = target_dir;
     MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD);
 }
 
-void Block::recv(Border_direction source_dir, char *buffer, int element_count)
+void Block::recv(Border_direction source_dir, unsigned char *buffer, int element_count)
 {
     int source_block = neighbour_number(source_dir);
     int tag = opposite_direction(source_dir);
@@ -580,7 +592,7 @@ void Block::communicate()
 {
     // create communication buffers
     int buffer_size = max(width, height);
-    char buffer[buffer_size];
+    unsigned char buffer[buffer_size];
 
     // TODO make unblocking send possible
     for (int i = NORTH; i <= SOUTH_EAST; i++)

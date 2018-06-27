@@ -79,23 +79,23 @@ class Block
 	int neighbour_number(Border_direction dir);
 
 	/* Wrap functions */
-	void wrap_row(char *buffer, int row);
-	void wrap_col(char *buffer, int col);
-	void wrap_corner(char *buffer, int x, int y);
-	void wrap(char *buffer, Border_direction dir);
+	void wrap_row(unsigned char *buffer, int row);
+	void wrap_col(unsigned char *buffer, int col);
+	void wrap_corner(unsigned char *buffer, int x, int y);
+	void wrap(unsigned char *buffer, Border_direction dir);
 
 	/* Unwrap functions */
-	void unwrap_row(char *buffer, int row);
-	void unwrap_col(char *buffer, int col);
-	void unwrap_corner(char *buffer, int x, int y);
-	void unwrap(char *buffer, Border_direction dir);
+	void unwrap_row(unsigned char *buffer, int row);
+	void unwrap_col(unsigned char *buffer, int col);
+	void unwrap_corner(unsigned char *buffer, int x, int y);
+	void unwrap(unsigned char *buffer, Border_direction dir);
 
 	/* element count */
 	int count_by_direction(Border_direction dir);
 
 	/* send und receive */
-	void send(Border_direction target_dir, char *buffer, int element_count);
-	void recv(Border_direction source_dir, char *buffer, int element_count);
+	void send(Border_direction target_dir, unsigned char *buffer, int element_count);
+	void recv(Border_direction source_dir, unsigned char *buffer, int element_count);
 
 	/**
      * TODO comment

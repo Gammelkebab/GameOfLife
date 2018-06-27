@@ -12,6 +12,7 @@ class World
 
   public:
     World(int width, int height, int block_amt);
+    void print();
 };
 
 #endif

@@ -4,9 +4,20 @@
 // TODO funktioniert das? und wieso nimmt er das falsche?
 //#define SMALL //uses small resolution, less iterations for testing
 
-#include "./world.h"
 #include "./block.h"
 // #include "./figures.h"
+
+#define SMALL //uses small resolution, less iterations for testing
+
+#ifndef SMALL
+#define GRIDSIZE_X 1920
+#define GRIDSIZE_Y 1080
+#define FRAMES 900
+#else
+#define GRIDSIZE_X 202
+#define GRIDSIZE_Y 200
+#define FRAMES 100
+#endif
 
 using namespace std;
 
@@ -27,11 +38,18 @@ int main(int argc, char **argv)
 
     // gettimeofday(&begin, NULL);
 
-    Block *block = new Block(block_num, block_amt);
+    Block *block = new Block(block_num, block_amt, GRIDSIZE_X, GRIDSIZE_Y);
 
     for (int i = 0; i < FRAMES; ++i)
     {
+        //block->printGrid();
         block->write(i);
+        if (i > 20 && i <= 40) {
+            block->fill(0);
+        }
+        if (i > 40) {
+            block->fill(1);
+        }
         //block->step_mpi(i);
     }
 

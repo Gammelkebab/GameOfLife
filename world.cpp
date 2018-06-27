@@ -1,6 +1,7 @@
 #include "world.h"
 
 #include <math.h>
+#include <stdio.h>
 
 World::World(int width, int height, int block_amt) : width(width), height(height)
 {
@@ -31,4 +32,12 @@ World::World(int width, int height, int block_amt) : width(width), height(height
     {
         cols++;
     }
+}
+
+void World::print()
+{
+    printf("World:\n{\n");
+    printf("\tPixels: %d x %d\n", width, height);
+    printf("\tBlocks: %d x %d\n", cols, rows);
+    printf("\n}\n");
 }

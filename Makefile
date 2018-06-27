@@ -1,12 +1,17 @@
 CC=mpic++
 CFLAGS = -g -Wall -Wextra -O3
 
-OBJ = main.o block.o world.o
+OBJ = main.o block.o world.o test.o
+OBJ_MAIN = main.o block.o world.o
+OBJ_TEST = test.o block.o world.o
 BIN = main
 
 #first target
-main : $(OBJ)
+main : $(OBJ_MAIN)
 	$(CC) $(CFLAGS) -o main $^
+	
+test : $(OBJ_TEST)
+	$(CC) $(CFLAGS) -o test $^
 
 #each object depends on the c-file with the same name
 %.o : %.cpp

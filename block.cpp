@@ -84,9 +84,10 @@ int Block::getNeighbours(unsigned char **grid, int x, int y)
     return sum;
 }
 
-Block::Block(int block_num, int block_amt)
+// TODO the blocks have to be 8-pixel alligned
+Block::Block(int block_num, int block_amt, int gridsize_x, int gridsize_y)
 {
-    world = new World(GRIDSIZE_X, GRIDSIZE_Y, block_amt);
+    world = new World(gridsize_x, gridsize_y, block_amt);
 
     // TODO group nearby blocks on same cluster node
     if (block_num >= world->rows * world->cols)
@@ -101,33 +102,54 @@ Block::Block(int block_num, int block_amt)
         y = block_num / world->cols;
     }
 
+    first_row = y == 0;
+    first_col = x == 0;
+    last_row = y == world->rows - 1;
+    last_col = x == world->cols - 1;
+
     // calculate the pixels assigned to this block
+    // takes care of 8 bit allignment
     // takes care of additional pixels from remainder of splitting
     width = world->width / world->cols;
-    if (x < world->width % world->cols)
+    width -= width % 8;
+    int remainder_x = world->width % (world->cols * 8); // the remainder after assigning full 8 bit blocks
+                                                        // this value is always < world->cols * 8
+    // distribute all full 8 bit blocks of the remainder to the first blocks,
+    // then the remaining bits to the last block
+    if (x < remainder_x / 8)
     {
-        width++;
+        width += 8;
     }
-    height = world->height / world->rows;
-    if (y < world->height % world->rows)
+    if (last_col)
     {
-        height++;
+        width += remainder_x % 8;
+    }
+    // the same for the height
+    height = world->height / world->rows;
+    height -= height % 8;
+    int remainder_y = world->height % (world->rows * 8);
+    if (y < remainder_y / 8)
+    {
+        height += 8;
+    }
+    if (last_row)
+    {
+        height += remainder_y % 8;
     }
 
     // calculate the position of the first (upper left) pixel assigned to this block
     // takes care of additional pixels from remainder of splitting
-    starting_x = x * (world->width / world->cols);
-    starting_x += min(x - 1, world->width % world->cols); // add all remainder pixels before this block
-    starting_y = y * (world->height / world->rows);
-    starting_y += min(y - 1, world->height % world->rows);
+    starting_x = world->width / world->cols;
+    starting_x -= starting_x % 8;
+    starting_x *= x;
+    starting_x += min(remainder_x / 8, x) * 8; // add all remainder pixels before this block
+    starting_y = world->height / world->rows;
+    starting_y -= starting_y % 8;
+    starting_y *= y;
+    starting_y += min(remainder_y / 8, y) * 8;
 
     grid = array2D(width + 2, height + 2);
     next_grid = array2D(width + 2, height + 2);
-
-    first_row = x == 0;
-    first_col = y == 0;
-    last_row = x == world->cols - 1;
-    last_col = y == world->rows - 1;
 
     randomize();
 }
@@ -139,8 +161,29 @@ void Block::deleteBlock()
     delete[] next_grid;
 }
 
+void Block::printBlock(bool print_world)
+{
+    if (print_world)
+    {
+        world->print();
+    }
+
+    printf("Block:\n{\n");
+    printf("\tPosition: \t(%d, %d)\n", x, y);
+    printf("\tPixel size: \t%d x %d\n", width, height);
+    printf("\tPixel start: \t(%d x %d)\n", starting_x, starting_y);
+    printf("\tSpecial Info:\n");
+    printf("\t{\n");
+    printf("\t\tFirst Row: \t%c\n", first_row ? '+' : '0');
+    printf("\t\tLast Row: \t%c\n", last_row ? '+' : '0');
+    printf("\t\tFirst Col: \t%c\n", first_col ? '+' : '0');
+    printf("\t\tLast Col: \t%c\n", last_col ? '+' : '0');
+    printf("\t}\n");
+    printf("\n}\n");
+}
+
 //console output, small grid is preferable
-void Block::printGrid(unsigned char **grid)
+void Block::printGrid()
 {
     // Print the current blocks adress
     printf("Block [%d, %d]:\n", x, y);
@@ -173,15 +216,34 @@ void Block::randomize()
     }
 }
 
-void Block::write_grid(MPI_File fh)
+void Block::buffer_row(unsigned char *buffer, int y)
 {
-    // TODO
-    /*
-    for (int w_row = 1; w_row <= height; w_row++)
+    for (int x = 1; x <= width; x++)
     {
-        MPI_File_write_at_all(fh, offset, buffer, count, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+        if (grid[y][x] == 1)
+        {
+            // Pixel (x, y) is alive
+            // write a one into the buffer at the x'th bit
+            // x - 1 because of the border
+            buffer[(x - 1) / 8] |= 1 << (x - 1) % 8;
+        }
     }
-    */
+}
+
+void Block::write_grid(MPI_File fh, int header_size)
+{
+    // Buffer stores one bit for every char -> 1/8 of size, but ceiled
+    int buffer_size = width / 8;
+    unsigned char buffer[buffer_size];
+    for (int y = 1; y <= height; y++)
+    {
+        memset(buffer, 0, buffer_size * sizeof(char));
+        buffer_row(buffer, y);
+        // The position of the first pixel of the current row
+        // y - 1 because of the border
+        int offset = header_size + (starting_x + (starting_y + y - 1) * world->width) / 8;
+        MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+    }
 }
 
 void Block::write(int step_number)
@@ -194,16 +256,16 @@ void Block::write(int step_number)
 
     // Create the header lines
     char *header = new char[100];
-    sprintf(header, "P4\n%d %d\n", GRIDSIZE_X, GRIDSIZE_Y);
-    int count = strlen(header);
+    sprintf(header, "P4\n%d %d\n", world->width, world->height);
+    int header_size = strlen(header);
     // Let thread 0 write the header to file
     if (x == 0 && y == 0)
     {
-        printf("Writing Header for %02d - Gridsize %d x %d\n", step_number, GRIDSIZE_X, GRIDSIZE_Y);
-        MPI_File_write_at(fh, 0, header, count, MPI_CHAR, MPI_STATUS_IGNORE);
+        printf("Writing Header for %02d - Gridsize %d x %d\n", step_number, world->width, world->height);
+        MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
     }
 
-    write_grid(fh);
+    write_grid(fh, header_size);
     MPI_Barrier(MPI_COMM_WORLD); // TODO remove barrier
     MPI_File_close(&fh);
 }
@@ -599,53 +661,9 @@ void Block::step()
      */
 void Block::step_mpi(int step_number)
 {
+    if (x == -1 || y == -1)
+        return;
     write(step_number);
     communicate();
     step();
-}
-
-//creates a .pbm file displaying the current grid
-//pbm in mode P4 reads bitwise, 1 black, 0 white
-void writeFrame(unsigned char **grid, int i)
-{
-    char *filename = new char[100];
-    sprintf(filename, "./images/frame_%03d.pbm", i);
-    FILE *outfile = fopen(filename, "w");
-    //Create first lines of .pbm layout:
-    //mode: P4 (bitwise black white)
-    //number of pixels in a row
-    //number of rows
-    fprintf(outfile, "P4\n%d %d\n", GRIDSIZE_X, GRIDSIZE_Y);
-
-    //determine number of bytes in a row
-    int gridsize_x_byte = GRIDSIZE_X / 8;
-    //if not all bits of a full byte are used (e.g. 10x16 grid)
-    //the last bits are ignored
-    if (GRIDSIZE_X % 8 != 0)
-    {
-        gridsize_x_byte++;
-    }
-    //array holding all bit-information packed in bytes
-    //char out[gridsize_x_byte*GRIDSIZE_Y] = {0};
-    char out[gridsize_x_byte * GRIDSIZE_Y];
-    memset(out, 0, gridsize_x_byte * GRIDSIZE_Y * sizeof(char));
-
-    for (int y = 0; y < GRIDSIZE_Y; ++y)
-    {
-        for (int x = 0; x < gridsize_x_byte; ++x)
-        {
-            //information about 8 cells are packed in one byte
-            for (int k = 0; k < 8; ++k)
-            {
-                if (x * 8 + k >= GRIDSIZE_X)
-                    break;
-                if (grid[y][x * 8 + k] == 1)
-                {
-                    out[y * gridsize_x_byte + x] += pow(2, 7 - k);
-                }
-            }
-        }
-    }
-    fwrite(&out[0], sizeof(char), gridsize_x_byte * GRIDSIZE_Y, outfile);
-    fclose(outfile);
 }

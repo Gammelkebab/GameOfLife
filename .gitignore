@@ -1,5 +1,7 @@
 main
+test
 *.o
 .vscode/
 images/*
 !images/.gitkeep
+log.txt

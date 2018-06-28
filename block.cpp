@@ -225,9 +225,21 @@ void Block::buffer_row(unsigned char *buffer, int y)
             // Pixel (x, y) is alive
             // write a one into the buffer at the x'th bit
             // x - 1 because of the border
-            buffer[(x - 1) / 8] |= 1 << (x - 1) % 8;
+            buffer[(x - 1) / 8] |= 1 << (7 - ((x - 1) % 8));
         }
     }
+}
+
+void print_unsigned_char_array(unsigned char *arr, int size)
+{
+    printf("[");
+    for (int i = 0; i < size; i++)
+    {
+        if (i > 0) {
+            printf(", ");
+        }
+        printf("%d", arr[i]);
+    }printf("]\n");
 }
 
 void Block::write_grid(MPI_File fh, int header_size)
@@ -235,13 +247,20 @@ void Block::write_grid(MPI_File fh, int header_size)
     // Buffer stores one bit for every char -> 1/8 of size, but ceiled
     int buffer_size = ceil(width / 8.0); // TODO korrekt?
     unsigned char buffer[buffer_size];
+
     for (int y = 1; y <= height; y++)
     {
-        memset(buffer, 0, buffer_size * sizeof(unsigned char));
+        memset(buffer, 0, buffer_size * sizeof(unsigned char)); // TODO remove to do less work
         buffer_row(buffer, y);
+        if (y == 1)
+        {
+            printf("Buffer_size: %d\n", buffer_size);
+            printf("Buffer:\n");
+            print_unsigned_char_array(buffer, buffer_size);
+        }
         // The position of the first pixel of the current row
         // y - 1 because of the border
-        int offset = header_size + (starting_x + (starting_y + y - 1) * world->width) / 8;
+        int offset = header_size + ((starting_x + (starting_y + y - 1) * world->width) / 8);
         MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
 }
@@ -258,6 +277,7 @@ void Block::write(int step_number)
     char *header = new char[100];
     sprintf(header, "P4\n%d %d\n", world->width, world->height);
     int header_size = strlen(header);
+
     // Let thread 0 write the header to file
     if (x == 0 && y == 0)
     {
@@ -662,6 +682,19 @@ void Block::step()
     unsigned char **swap = grid;
     grid = next_grid;
     next_grid = swap;
+}
+
+void Block::fill(unsigned char val)
+{
+    {
+        for (int x = 1; x <= width; x++)
+        {
+            for (int y = 1; y <= height; y++)
+            {
+                grid[y][x] = val;
+            }
+        }
+    }
 }
 
 /* 

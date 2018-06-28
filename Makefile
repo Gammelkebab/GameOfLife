@@ -14,7 +14,7 @@ test_c : $(OBJ_TEST)
 	$(CC) $(CFLAGS) -o test $^
 
 run : main
-	./main && ./create_video.sh
+	mpirun -np 1 ./main && ./create_video.sh
 
 test : test_c
 	./test
@@ -25,3 +25,7 @@ test : test_c
 
 clean :
 	rm -rf $(BIN) $(OBJ)
+
+clean_full : clean
+	rm -rf ./output.gif
+	rm -rf ./images/frame_*

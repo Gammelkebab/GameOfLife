@@ -110,6 +110,8 @@ class Block
      */
 	void step();
 
+	void fill(unsigned char val);
+
 	/* 
      * MPI Additions to the normal step:
      * There are 3 parts to every step:
@@ -118,17 +120,6 @@ class Block
      * 3. do the actual step algorithm
      */
 	void step_mpi(int step_number);
-
-	void fill(int val)
-	{
-		for (int x = 0; x < width; x++)
-		{
-			for (int y = 0; y < height; y++)
-			{
-				grid[y][x] = val;
-			}
-		}
-	}
 };
 
 #endif

@@ -59,6 +59,15 @@ void neighbour_number_test(Block *block)
     printf("SOUTH_EAST from Block 0: Block %d\n", block->neighbour_number(SOUTH_EAST));
 }
 
+void grid_fill_test(Block *block)
+{
+    block->printGrid();
+    block->fill(0);
+    block->printGrid();
+    block->fill(1);
+    block->printGrid();
+}
+
 int main()
 {
     int block_amt = 14;
@@ -81,10 +90,20 @@ int main()
 
     Block *blocks[block_amt];
     create_dummy_blocks(blocks, block_amt, gridsize_x, gridsize_y);
+
     //blocks[block_num]->printBlock(block_num == 0);
 
     Block *block = blocks[0];
+
     //wrap_unwrap_test(block);
 
-    neighbour_number_test(block);
+    //neighbour_number_test(block);
+
+    //block->printBlock(true);
+    //grid_fill_test(block);
+
+    //block = blocks[11];
+
+    //block->printBlock(true);
+    //grid_fill_test(block);
 }

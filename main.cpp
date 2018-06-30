@@ -5,7 +5,7 @@
 //#define SMALL //uses small resolution, less iterations for testing
 
 #include "./block.h"
-// #include "./figures.h"
+#include "./figures.h"
 
 #define SMALL //uses small resolution, less iterations for testing
 
@@ -42,6 +42,7 @@ int main(int argc, char **argv)
 
     Block *block = new Block(block_num, block_amt, GRIDSIZE_X, GRIDSIZE_Y);
 
+    /*
     for (int i = 0; i < 3; ++i)
     {
         //block->printGrid();
@@ -55,13 +56,15 @@ int main(int argc, char **argv)
             block->fill(1);
         }
     }
+    */
 
-    /*
+    block->fill(0);
+    glider(block->grid, 25, 25);
+
     for (int i = 0; i < FRAMES; ++i)
     {
         block->step_mpi(i);
     }
-    */
 
     gettimeofday(&end, NULL);
     elapsed += (end.tv_sec - begin.tv_sec) + ((end.tv_usec - begin.tv_usec) / 1000000.0);

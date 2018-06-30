@@ -120,6 +120,8 @@ class Block
      * 3. do the actual step algorithm
      */
 	void step_mpi(int step_number);
+
+	void set_bit(unsigned char *data, int position, int val);
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include "./block.h"
+#include "./figures.h"
 
 void create_dummy_blocks(Block **blocks, int block_amt, int gridsize_x, int gridsize_y)
 {
@@ -68,6 +69,47 @@ void grid_fill_test(Block *block)
     block->printGrid();
 }
 
+void set_bit_test(Block *block)
+{
+    printf("Toggling 2nd position\n");
+
+    unsigned char a = 0;
+    printf("%d => ", a);
+    block->set_bit(&a, 2, 1);
+    printf("%d\n", a);
+
+    unsigned char b = 255;
+    printf("%d => ", b);
+    block->set_bit(&b, 2, 0);
+    printf("%d\n", b);
+}
+
+void step_test(Block *block)
+{
+    block->fill(0);               // clear grid
+    blinker(block->grid, 10, 10); // create blinker at (10, 10)
+
+    // Fill the upper and lower border
+    for (int x = 0; x <= block->width + 1; x++)
+    {
+        block->grid[0][x] = 1;
+        block->grid[block->width + 1][x] = 1;
+    }
+
+    // Fill the left and right border
+    for (int y = 0; y <= block->height + 1; y++)
+    {
+        block->grid[y][0] = 1;
+        block->grid[y][block->width + 1] = 1;
+    }
+
+    block->printGrid();
+    block->step();
+    block->printGrid();
+    block->step();
+    block->printGrid();
+}
+
 int main()
 {
     int block_amt = 14;
@@ -91,7 +133,12 @@ int main()
     Block *blocks[block_amt];
     create_dummy_blocks(blocks, block_amt, gridsize_x, gridsize_y);
 
-    //blocks[block_num]->printBlock(block_num == 0);
+    /*
+    for (int block_num = 0; block_num < block_amt; block_num++)
+    {
+        blocks[block_num]->printBlock(block_num == 0);
+    }
+    */
 
     Block *block = blocks[0];
 
@@ -106,4 +153,8 @@ int main()
 
     //block->printBlock(true);
     //grid_fill_test(block);
+
+    //set_bit_test(block);
+
+    //step_test(block);
 }

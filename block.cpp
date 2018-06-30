@@ -14,6 +14,39 @@ int max(int a, int b)
     return a >= b ? a : b;
 }
 
+void print_border_direction(Border_direction dir)
+{
+    switch (dir)
+    {
+    case NORTH:
+        printf("NORTH");
+        break;
+    case SOUTH:
+        printf("SOUTH");
+        break;
+    case WEST:
+        printf("WEST");
+        break;
+    case EAST:
+        printf("EAST");
+        break;
+    case NORTH_WEST:
+        printf("NORTH_WEST");
+        break;
+    case NORTH_EAST:
+        printf("NORTH_EAST");
+        break;
+    case SOUTH_WEST:
+        printf("SOUTH_WEST");
+        break;
+    case SOUTH_EAST:
+        printf("SOUTH_EAST");
+        break;
+    default:
+        printf("NONE");
+    }
+}
+
 Border_direction opposite_direction(Border_direction dir)
 {
     switch (dir)
@@ -22,10 +55,10 @@ Border_direction opposite_direction(Border_direction dir)
         return SOUTH;
     case SOUTH:
         return NORTH;
-    case EAST:
-        return WEST;
     case WEST:
         return EAST;
+    case EAST:
+        return WEST;
     case NORTH_WEST:
         return SOUTH_EAST;
     case NORTH_EAST:
@@ -71,16 +104,21 @@ int Block::isAlive(int neighbours, unsigned char cell)
 //alive = 1, dead = 0
 int Block::getNeighbours(unsigned char **grid, int x, int y)
 {
+    if (x == 0 || x == width + 1 || y == 0 || y == height + 1)
+    {
+        printf("Trying to get neighbours of border pixel (%d, %d). Returning 2.", x, y);
+        return 2;
+    }
     int sum = 0;
-    // rows above and below
+    // pixels in row above and below
     for (int i = 0; i < 3; ++i)
     {
-        sum += grid[(y + 1) % height][(x - 1 + i + width) % width];
-        sum += grid[(y - 1 + height) % height][(x - 1 + i + width) % width];
+        sum += grid[y - 1][x - 1 + i];
+        sum += grid[y + 1][x - 1 + i];
     }
     // pixels left and right
-    sum += grid[y][(x - 1 + width) % width];
-    sum += grid[y][(x + 1) % width];
+    sum += grid[y][x - 1];
+    sum += grid[y][x + 1];
     return sum;
 }
 
@@ -189,16 +227,36 @@ void Block::printGrid()
     printf("Block [%d, %d]:\n", x, y);
 
     // Print all the assigned pixels without the borders
-    for (int y = 1; y <= height; ++y)
+    for (int y = 0; y < height + 2; y++)
     {
-        for (int x = 1; x <= width; ++x)
+        if (y == width + 1)
         {
+            printf("\n");
+        }
+        for (int x = 0; x < width + 2; x++)
+        {
+            if (x == width + 1)
+            {
+                printf("\t");
+            }
             if (grid[y][x])
-                printf("X ");
+            {
+                printf("X");
+            }
             else
-                printf("- ");
+            {
+                printf("-");
+            }
+            if (x == 0)
+            {
+                printf("\t");
+            }
         }
         printf("\n");
+        if (y == 0)
+        {
+            printf("\n");
+        }
     }
     printf("\n\n");
 }
@@ -216,17 +274,23 @@ void Block::randomize()
     }
 }
 
+void Block::set_bit(unsigned char *data, int position, int value)
+{
+    *data ^= (-value ^ *data) & (1UL << (7 - position));
+}
+
 void Block::buffer_row(unsigned char *buffer, int y)
 {
     for (int x = 1; x <= width; x++)
     {
-        if (grid[y][x] == 1)
-        {
-            // Pixel (x, y) is alive
-            // write a one into the buffer at the x'th bit
-            // x - 1 because of the border
-            buffer[(x - 1) / 8] |= 1 << (7 - ((x - 1) % 8));
-        }
+        // Pixel (x, y)
+        // write a 0 or 1 into the buffer at the x'th bit
+        // x - 1 because of the border
+
+        unsigned char val = grid[y][x] > 0 ? 1 : 0;
+        int pos = (x - 1) / 8;
+        int bit_pos = (x - 1) % 8;
+        set_bit(&buffer[pos], bit_pos, val);
     }
 }
 
@@ -235,11 +299,13 @@ void print_unsigned_char_array(unsigned char *arr, int size)
     printf("[");
     for (int i = 0; i < size; i++)
     {
-        if (i > 0) {
+        if (i > 0)
+        {
             printf(", ");
         }
         printf("%d", arr[i]);
-    }printf("]\n");
+    }
+    printf("]\n");
 }
 
 void Block::write_grid(MPI_File fh, int header_size)
@@ -247,21 +313,27 @@ void Block::write_grid(MPI_File fh, int header_size)
     // Buffer stores one bit for every char -> 1/8 of size, but ceiled
     int buffer_size = ceil(width / 8.0); // TODO korrekt?
     unsigned char buffer[buffer_size];
-
+    buffer[buffer_size - 1] = 0; // TODO remove?
+                                 // Clear last otherwise unwritten pixels in the buffer
+    //printGrid();
     for (int y = 1; y <= height; y++)
     {
-        memset(buffer, 0, buffer_size * sizeof(unsigned char)); // TODO remove to do less work
+        //memset(buffer, 0, buffer_size * sizeof(unsigned char)); // TODO remove to do less work
         buffer_row(buffer, y);
         if (y == 1)
         {
-            printf("Buffer_size: %d\n", buffer_size);
-            printf("Buffer:\n");
-            print_unsigned_char_array(buffer, buffer_size);
+            //printf("Buffer_size: %d\n", buffer_size);
+            //printf("Buffer:\n");
+            //print_unsigned_char_array(buffer, buffer_size);
         }
         // The position of the first pixel of the current row
         // y - 1 because of the border
-        int offset = header_size + ((starting_x + (starting_y + y - 1) * world->width) / 8);
-        MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+        int offset = header_size + (starting_x / 8 + (starting_y + y - 1) * ceil(world->width / 8.0));
+        //printf("offset: %d\n", offset);
+        /*if (this->y == 0) {
+            printf("... (%d, %d) writing %d of %d now\n", this->x, this->y, y, height);
+        }*/
+        MPI_File_write_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
 }
 
@@ -281,11 +353,15 @@ void Block::write(int step_number)
     // Let thread 0 write the header to file
     if (x == 0 && y == 0)
     {
-        printf("Writing Header for %02d - Gridsize %d x %d\n", step_number, world->width, world->height);
+        //printf("Writing Header for %02d - Gridsize %d x %d ...\n", step_number, world->width, world->height);
         MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
+        //printf("done\n");
     }
 
+    //printf("(%d, %d) writing grid ...\n", x, y);
     write_grid(fh, header_size);
+    //printf("(%d, %d) done\n", x, y);
+
     MPI_Barrier(MPI_COMM_WORLD); // TODO remove barrier
     MPI_File_close(&fh);
 }
@@ -445,10 +521,10 @@ int Block::neighbour_number(Border_direction dir)
         return north();
     case SOUTH:
         return south();
-    case EAST:
-        return east();
     case WEST:
         return west();
+    case EAST:
+        return east();
     case NORTH_WEST:
         return north_west();
     case NORTH_EAST:
@@ -470,6 +546,9 @@ void Block::wrap_row(unsigned char *buffer, int row)
     {
         buffer[x - 1] = grid[row][x];
     }
+    /*printf("row %d Wrapped:\n", row);
+    print_unsigned_char_array(buffer, width);
+    printf("\n");*/
 }
 
 void Block::wrap_col(unsigned char *buffer, int col)
@@ -490,28 +569,28 @@ void Block::wrap(unsigned char *buffer, Border_direction dir)
     switch (dir)
     {
     case NORTH:
-        wrap_row(buffer, 0);
+        wrap_row(buffer, 1);
         break;
     case SOUTH:
-        wrap_row(buffer, height + 1);
-        break;
-    case EAST:
-        wrap_col(buffer, 0);
+        wrap_row(buffer, height);
         break;
     case WEST:
-        wrap_col(buffer, width + 1);
+        wrap_col(buffer, 1);
+        break;
+    case EAST:
+        wrap_col(buffer, width);
         break;
     case NORTH_WEST:
-        wrap_corner(buffer, 0, 0);
+        wrap_corner(buffer, 1, 1);
         break;
     case NORTH_EAST:
-        wrap_corner(buffer, width + 1, 0);
+        wrap_corner(buffer, width, 1);
         break;
     case SOUTH_WEST:
-        wrap_corner(buffer, 0, height + 1);
+        wrap_corner(buffer, 1, height);
         break;
     case SOUTH_EAST:
-        wrap_corner(buffer, width + 1, height + 1);
+        wrap_corner(buffer, width, height);
         break;
     }
 }
@@ -549,10 +628,10 @@ void Block::unwrap(unsigned char *buffer, Border_direction dir)
     case SOUTH:
         unwrap_row(buffer, height + 1);
         break;
-    case EAST:
+    case WEST:
         unwrap_col(buffer, 0);
         break;
-    case WEST:
+    case EAST:
         unwrap_col(buffer, width + 1);
         break;
     case NORTH_WEST:
@@ -592,16 +671,41 @@ int Block::count_by_direction(Border_direction dir)
 
 void Block::send(Border_direction target_dir, unsigned char *buffer, int element_count)
 {
+    /*
+    printf("(%d, %d) trying to send ", x, y);
+    print_border_direction(target_dir);
+    printf("\n");
+    */
     int target_block = neighbour_number(target_dir);
     int tag = target_dir;
-    MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD);
+    // TODO blocking send does not work so far, as there might be an uneven amount of blocks in a row/col
+    //MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD);
+    MPI_Request request;
+    MPI_Isend(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD, &request);
+    /*printf("(%d, %d) sent to ", x, y);
+    print_border_direction(target_dir);
+    printf(":\n");
+    print_unsigned_char_array(buffer, element_count);
+    printf("\n");*/
 }
 
 void Block::recv(Border_direction source_dir, unsigned char *buffer, int element_count)
 {
+    /*
+    printf("(%d, %d) trying to recv ", x, y);
+    print_border_direction(source_dir);
+    printf("\n");
+    */
     int source_block = neighbour_number(source_dir);
     int tag = opposite_direction(source_dir);
     MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    /*
+    printf("(%d, %d) received from ", x, y);
+    print_border_direction(source_dir);
+    printf(":\n");
+    print_unsigned_char_array(buffer, element_count);
+    printf("\n");
+    */
 }
 
 /**
@@ -612,7 +716,11 @@ void Block::communicate()
 {
     // create communication buffers
     int buffer_size = max(width, height);
-    unsigned char buffer[buffer_size];
+    // TODO as soon as send is blocking again
+    //unsigned char buffer[buffer_size];
+
+    unsigned char send_buffer[buffer_size];
+    unsigned char recv_buffer[buffer_size];
 
     // TODO make unblocking send possible
     for (int i = NORTH; i <= SOUTH_EAST; i++)
@@ -620,44 +728,25 @@ void Block::communicate()
         Border_direction dir = (Border_direction)i;
         Border_direction opp = opposite_direction(dir);
 
-        if (dir == NORTH || dir == SOUTH)
+        /*
+        if (x == 0 && y == 0)
         {
-            if (y % 2 == 0)
-            {
-                int count = count_by_direction(dir);
-                wrap(buffer, dir);
-                send(dir, buffer, count);
-                recv(opp, buffer, count);
-                unwrap(buffer, opp);
-            }
-            else
-            {
-                int count = count_by_direction(dir);
-                recv(opp, buffer, count);
-                unwrap(buffer, opp);
-                wrap(buffer, dir);
-                send(dir, buffer, count);
-            }
+            printf("dir: ");
+            print_border_direction(dir);
+            printf(" opp: ");
+            print_border_direction(opp);
+            printf("\n\n");
         }
-        else
-        {
-            if (x % 2 == 0)
-            {
-                int count = count_by_direction(dir);
-                wrap(buffer, dir);
-                send(dir, buffer, count);
-                recv(opp, buffer, count);
-                unwrap(buffer, opp);
-            }
-            else
-            {
-                int count = count_by_direction(dir);
-                recv(opp, buffer, count);
-                unwrap(buffer, opp);
-                wrap(buffer, dir);
-                send(dir, buffer, count);
-            }
-        }
+        */
+
+        int count = count_by_direction(dir);
+        wrap(send_buffer, dir);
+        send(dir, send_buffer, count);
+        recv(opp, recv_buffer, count);
+        unwrap(recv_buffer, opp);
+
+        // TODO as soon as send is blocking again
+        MPI_Barrier(MPI_COMM_WORLD);
     }
 }
 
@@ -669,12 +758,13 @@ void Block::communicate()
 void Block::step()
 {
     int neighbours;
-    for (int y = 1; y <= height; ++y)
+    for (int y = 1; y <= height; y++)
     {
-        for (int x = 1; x <= width; ++x)
+        for (int x = 1; x <= width; x++)
         {
             neighbours = getNeighbours(grid, x, y);
             next_grid[y][x] = isAlive(neighbours, grid[y][x]);
+            //printf("(%d, %d) has %d neighbours and is now %s\n", x, y, neighbours, next_grid[y][x] == 0 ? "dead" : "alive");
         }
     }
 

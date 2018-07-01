@@ -8,7 +8,7 @@
 #include "./block.h"
 #include "./figures.h"
 
-#define SMALL //uses small resolution, less iterations for testing
+#define SMAL //uses small resolution, less iterations for testing
 
 #ifndef SMALL
 #define GRIDSIZE_X 1920

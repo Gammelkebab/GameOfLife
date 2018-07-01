@@ -2,8 +2,8 @@
 #PBS -N MPI
 #PBS -j oe
 #PBS -m ae
-#PBS -l nodes=1:ppn=1
-#PBS -l walltime=0:10:00
+#PBS -l nodes=4:ppn=12
+#PBS -l walltime=2:00:00
 #PBS -l mem=1gb
 #PBS -W x=PARTITION:tane
 
@@ -14,5 +14,6 @@ module load foss
 make full
 
 mpirun -np 1 ./main > log1.txt
-
-./create_video.sh
+mpirun -np 4 ./main > log2.txt
+mpirun -np 12 ./main > log3.txt
+mpirun -np 48 ./main > log4.txt

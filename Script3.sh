@@ -2,8 +2,8 @@
 #PBS -N MPI
 #PBS -j oe
 #PBS -m ae
-#PBS -l nodes=1:ppn=4
-#PBS -l walltime=0:05:00
+#PBS -l nodes=4:ppn=4
+#PBS -l walltime=0:02:00
 #PBS -l mem=1gb
 #PBS -W x=PARTITION:tane
 

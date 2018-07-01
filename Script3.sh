@@ -13,6 +13,6 @@ module load foss
 
 make full
 
-mpirun ./main > log2.txt
+mpirun ./main > log3.txt
 
 ./create_video.sh

@@ -1,5 +1,6 @@
 #include <time.h>
 #include <sys/time.h>
+#include <stdio.h>
 
 // TODO funktioniert das? und wieso nimmt er das falsche?
 //#define SMALL //uses small resolution, less iterations for testing

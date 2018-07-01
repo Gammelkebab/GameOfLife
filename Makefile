@@ -26,6 +26,6 @@ test : test_c
 clean :
 	rm -rf $(BIN) $(OBJ)
 
-clean_full : clean
+full : clean main
 	rm -rf ./output.gif
 	rm -rf ./images/frame_*

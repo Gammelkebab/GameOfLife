@@ -37,7 +37,10 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &block_num);
     MPI_Comm_size(MPI_COMM_WORLD, &block_amt);
 
-    printf("block_amt: %d, block_num: %d\n", block_amt, block_num);
+    if (block_num == 0)
+    {
+        printf("block_amt: %d\n", block_amt);
+    }
 
     // gettimeofday(&begin, NULL);
 
@@ -64,6 +67,10 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < FRAMES; ++i)
     {
+        if (block_num == 0)
+        {
+            printf("round: %d\n", i + 1);
+        }
         block->step_mpi(i);
     }
 

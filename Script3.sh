@@ -3,7 +3,7 @@
 #PBS -j oe
 #PBS -m ae
 #PBS -l nodes=4:ppn=4
-#PBS -l walltime=0:02:00
+#PBS -l walltime=0:00:30
 #PBS -l mem=1gb
 #PBS -W x=PARTITION:tane
 

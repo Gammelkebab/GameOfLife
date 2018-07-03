@@ -22,37 +22,40 @@ unsigned char **array2D(int width, int height);
 
 class Block
 {
-private:
+  private:
 	typedef unsigned char **Grid;
 
-private:
+  private:
 	int getNeighbours(unsigned char **grid, int x, int y);
 	int isAlive(int neighbours, unsigned char cell);
 
-public:
+  public:
 	World *world;
 
-public:
-	int x, y;																			 // x and y position of the block (in blocks not pixels)
-	int width, height;														 // height and width of the block (without borders)
-	int max_height;																 // The maximum height between all blocks (used for collective write)
-	int starting_x, starting_y;										 // upper left corner x and y position (pixels)
+  public:
+	int x, y;									   // x and y position of the block (in blocks not pixels)
+	int width, height;							   // height and width of the block (without borders)
+	int max_height;								   // The maximum height between all blocks (used for collective write)
+	int starting_x, starting_y;					   // upper left corner x and y position (pixels)
 	bool first_row, first_col, last_row, last_col; // booleans indicating specific block positions
 
-public:
+  public:
 	Grid grid; // The actual data of all the assigned pixels
-						 // REMEMBER! this grid has the borders stored as well
-						 // => it has size (width + 2, height + 2)
-						 // => the 'real' pxiels go from (1, 1) up to (width, height)
+			   // REMEMBER! this grid has the borders stored as well
+			   // => it has size (width + 2, height + 2)
+			   // => the 'real' pxiels go from (1, 1) up to (width, height)
 	Grid next_grid;
 
-public:
+  public:
+	MPI_Comm active_comm;
+
+  public:
 	Block(int block_num, int block_amt, int gridsize_x, int gridsize_y);
 
 	// TODO
 	void deleteBlock();
 
-public:
+  public:
 	void printBlock(bool print_world = true);
 	//console output, small grid is preferable
 	void printGrid();
@@ -123,6 +126,7 @@ public:
 	void step_mpi(int step_number);
 
 	void set_bit(unsigned char *data, int position, int val);
+	void set_active_comm(MPI_Comm active_comm);
 };
 
 #endif

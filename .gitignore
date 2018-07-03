@@ -4,4 +4,4 @@ test
 .vscode/
 images/*
 !images/.gitkeep
-log.txt
+log*

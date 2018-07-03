@@ -336,23 +336,22 @@ void Block::write_grid(MPI_File fh, int header_size)
         // y - 1 because of the border
         int offset = header_size + (starting_x / 8 + (starting_y + y - 1) * ceil(world->width / 8.0));
 
-        // TODO This is necessary because otherwise the write calls are done sequentially,
-        // taking huge amounts of time
-        // The problem right now is, that the function blocks when only some threads still call it
-        // The unblocking version iwrite_at_all might work, but it would still have to block somehow,
-        // so the buffer is not overwritten
-
-        // TODO this is slower ?!
-        MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+        // TODO
+        MPI_File_write_at_all_begin(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR);
+        //MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
         //MPI_File_write_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+
+        if (y == height)
+        {
+            MPI_File_write_at_all_end(fh, buffer, MPI_STATUS_IGNORE);
+        }
     }
-    
-    for (int y = height + 1; y <= max_height; y++)
+
+    /*for (int y = height + 1; y <= max_height; y++)
     {
         // Empty write so collective write does not block for remaining pixels
         MPI_File_write_at_all(fh, 0, buffer, 0, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
-    }
-    
+    }*/
 }
 
 void Block::write(int step_number)
@@ -361,7 +360,7 @@ void Block::write(int step_number)
     sprintf(filename, "./images/frame_%03d.pbm", step_number);
 
     MPI_File fh;
-    MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+    MPI_File_open(active_comm, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
 
     // Create the header lines
     char *header = new char[100];
@@ -374,9 +373,16 @@ void Block::write(int step_number)
         MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
     }
 
+    struct timeval begin;
+    gettimeofday(&begin, NULL);
     write_grid(fh, header_size);
+    if (x == 0 && y == 0)
+    {
+        printf("Write_grid: ");
+        print_time_since(begin);
+    }
 
-    MPI_Barrier(MPI_COMM_WORLD); // TODO remove barrier
+    MPI_Barrier(active_comm); // TODO remove barrier
     MPI_File_close(&fh);
 }
 
@@ -693,16 +699,16 @@ void Block::send(Border_direction target_dir, unsigned char *buffer, int element
     int target_block = neighbour_number(target_dir);
     int tag = target_dir;
     // TODO blocking send does not work so far, as there might be an uneven amount of blocks in a row/col
-    //MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD);
+    //MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, active_comm);
     MPI_Request request;
-    MPI_Isend(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD, &request);
+    MPI_Isend(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, active_comm, &request);
 }
 
 void Block::recv(Border_direction source_dir, unsigned char *buffer, int element_count)
 {
     int source_block = neighbour_number(source_dir);
     int tag = opposite_direction(source_dir);
-    MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, active_comm, MPI_STATUS_IGNORE);
 }
 
 /**
@@ -732,7 +738,7 @@ void Block::communicate()
         unwrap(recv_buffer, opp);
 
         // TODO as soon as send is blocking again
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(active_comm);
     }
 }
 
@@ -772,6 +778,11 @@ void Block::fill(unsigned char val)
     }
 }
 
+void Block::set_active_comm(MPI_Comm active_comm)
+{
+    this->active_comm = active_comm;
+}
+
 /* 
      * MPI Additions to the normal step:
      * There are 3 parts to every step:
@@ -785,7 +796,7 @@ void Block::step_mpi(int step_number)
         return;
     struct timeval begin;
     gettimeofday(&begin, NULL);
-    //write(step_number);
+    write(step_number);
     if (x == 0 && y == 0)
     {
         printf("Write %03d \t- ", step_number + 1);

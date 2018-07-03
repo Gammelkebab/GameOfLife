@@ -30,10 +30,6 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-
-    /* TODO TODO TODO */
-    // Active Comm wieder einbauen
-
     MPI_Init(&argc, &argv);
 
     //time measurement
@@ -53,6 +49,21 @@ int main(int argc, char **argv)
     }
 
     Block *block = new Block(block_num, block_amt, GRIDSIZE_X, GRIDSIZE_Y);
+
+    int active_comm_amt = block->world->rows * block->world->cols;
+    int active_comm_list[active_comm_amt];
+    for (int i = 0; i < active_comm_amt; i++)
+    {
+        active_comm_list[i] = i;
+    }
+
+    MPI_Group world_group, active_group;
+    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+    MPI_Group_incl(world_group, active_comm_amt, active_comm_list, &active_group);
+    MPI_Comm active_comm;
+    MPI_Comm_create(MPI_COMM_WORLD, active_group, &active_comm);
+
+    block->set_active_comm(active_comm);
 
     block->fill(0);
     glider(block->grid, 25, 25);

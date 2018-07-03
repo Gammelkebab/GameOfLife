@@ -1,4 +1,6 @@
 #include "block.h"
+#include "timing.h"
+
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>
@@ -166,6 +168,7 @@ Block::Block(int block_num, int block_amt, int gridsize_x, int gridsize_y)
     // the same for the height
     height = world->height / world->rows;
     height -= height % 8;
+    max_height = height;
     int remainder_y = world->height % (world->rows * 8);
     if (y < remainder_y / 8)
     {
@@ -174,6 +177,15 @@ Block::Block(int block_num, int block_amt, int gridsize_x, int gridsize_y)
     if (last_row)
     {
         height += remainder_y % 8;
+    }
+
+    if (remainder_y > 8)
+    {
+        max_height += 8;
+    }
+    else
+    {
+        max_height += remainder_y;
     }
 
     // calculate the position of the first (upper left) pixel assigned to this block
@@ -210,6 +222,7 @@ void Block::printBlock(bool print_world)
     printf("Block:\n{\n");
     printf("\tPosition: \t(%d, %d)\n", x, y);
     printf("\tPixel size: \t%d x %d\n", width, height);
+    printf("\tMaximum height: \t%d\n", max_height);
     printf("\tPixel start: \t(%d x %d)\n", starting_x, starting_y);
     printf("\tSpecial Info:\n");
     printf("\t{\n");
@@ -316,25 +329,26 @@ void Block::write_grid(MPI_File fh, int header_size)
     unsigned char buffer[buffer_size];
     buffer[buffer_size - 1] = 0; // TODO remove?
                                  // Clear last otherwise unwritten pixels in the buffer
-    //printGrid();
     for (int y = 1; y <= height; y++)
     {
-        //memset(buffer, 0, buffer_size * sizeof(unsigned char)); // TODO remove to do less work
         buffer_row(buffer, y);
-        if (y == 1)
-        {
-            //printf("Buffer_size: %d\n", buffer_size);
-            //printf("Buffer:\n");
-            //print_unsigned_char_array(buffer, buffer_size);
-        }
         // The position of the first pixel of the current row
         // y - 1 because of the border
         int offset = header_size + (starting_x / 8 + (starting_y + y - 1) * ceil(world->width / 8.0));
-        //printf("offset: %d\n", offset);
-        /*if (this->y == 0) {
-            printf("... (%d, %d) writing %d of %d now\n", this->x, this->y, y, height);
-        }*/
-        MPI_File_write_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+
+        // TODO This is necessary because otherwise the write calls are done sequentially,
+        // taking huge amounts of time
+        // The problem right now is, that the function blocks when only some threads still call it
+        // The unblocking version iwrite_at_all might work, but it would still have to block somehow,
+        // so the buffer is not overwritten
+
+        // TODO this is slower ?!
+        MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+    }
+    for (int y = height + 1; y <= max_height; y++)
+    {
+        // Empty write so collective write does not block for remaining pixels
+        MPI_File_write_at_all(fh, 0, buffer, 0, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
 }
 
@@ -354,14 +368,10 @@ void Block::write(int step_number)
     // Let thread 0 write the header to file
     if (x == 0 && y == 0)
     {
-        //printf("Writing Header for %02d - Gridsize %d x %d ...\n", step_number, world->width, world->height);
         MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
-        //printf("done\n");
     }
 
-    //printf("(%d, %d) writing grid ...\n", x, y);
     write_grid(fh, header_size);
-    //printf("(%d, %d) done\n", x, y);
 
     MPI_Barrier(MPI_COMM_WORLD); // TODO remove barrier
     MPI_File_close(&fh);
@@ -683,30 +693,13 @@ void Block::send(Border_direction target_dir, unsigned char *buffer, int element
     //MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD);
     MPI_Request request;
     MPI_Isend(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, MPI_COMM_WORLD, &request);
-    /*printf("(%d, %d) sent to ", x, y);
-    print_border_direction(target_dir);
-    printf(":\n");
-    print_unsigned_char_array(buffer, element_count);
-    printf("\n");*/
 }
 
 void Block::recv(Border_direction source_dir, unsigned char *buffer, int element_count)
 {
-    /*
-    printf("(%d, %d) trying to recv ", x, y);
-    print_border_direction(source_dir);
-    printf("\n");
-    */
     int source_block = neighbour_number(source_dir);
     int tag = opposite_direction(source_dir);
     MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    /*
-    printf("(%d, %d) received from ", x, y);
-    print_border_direction(source_dir);
-    printf(":\n");
-    print_unsigned_char_array(buffer, element_count);
-    printf("\n");
-    */
 }
 
 /**
@@ -728,17 +721,6 @@ void Block::communicate()
     {
         Border_direction dir = (Border_direction)i;
         Border_direction opp = opposite_direction(dir);
-
-        /*
-        if (x == 0 && y == 0)
-        {
-            printf("dir: ");
-            print_border_direction(dir);
-            printf(" opp: ");
-            print_border_direction(opp);
-            printf("\n\n");
-        }
-        */
 
         int count = count_by_direction(dir);
         wrap(send_buffer, dir);
@@ -765,7 +747,6 @@ void Block::step()
         {
             neighbours = getNeighbours(grid, x, y);
             next_grid[y][x] = isAlive(neighbours, grid[y][x]);
-            //printf("(%d, %d) has %d neighbours and is now %s\n", x, y, neighbours, next_grid[y][x] == 0 ? "dead" : "alive");
         }
     }
 
@@ -799,7 +780,26 @@ void Block::step_mpi(int step_number)
 {
     if (x == -1 || y == -1)
         return;
+    struct timeval begin;
+    gettimeofday(&begin, NULL);
     write(step_number);
+    if (x == 0 && y == 0)
+    {
+        printf("Write %03d \t- ", step_number + 1);
+        print_time_since(begin);
+    }
+    gettimeofday(&begin, NULL);
     communicate();
+    if (x == 0 && y == 0)
+    {
+        printf("Comm. %03d \t- ", step_number + 1);
+        print_time_since(begin);
+    }
+    gettimeofday(&begin, NULL);
     step();
+    if (x == 0 && y == 0)
+    {
+        printf("Step  %03d \t- ", step_number + 1);
+        print_time_since(begin);
+    }
 }

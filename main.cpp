@@ -30,6 +30,10 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
+
+    /* TODO TODO TODO */
+    // Active Comm wieder einbauen
+
     MPI_Init(&argc, &argv);
 
     //time measurement
@@ -48,25 +52,7 @@ int main(int argc, char **argv)
         printf("block_amt: %d\n", block_amt);
     }
 
-    // gettimeofday(&begin, NULL);
-
     Block *block = new Block(block_num, block_amt, GRIDSIZE_X, GRIDSIZE_Y);
-
-    /*
-    for (int i = 0; i < 3; ++i)
-    {
-        //block->printGrid();
-        block->write(i);
-        if (i == 0)
-        {
-            block->fill(0);
-        }
-        if (i == 1)
-        {
-            block->fill(1);
-        }
-    }
-    */
 
     block->fill(0);
     glider(block->grid, 25, 25);

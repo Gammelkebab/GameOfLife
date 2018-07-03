@@ -13,6 +13,6 @@ module load foss
 
 make full
 
-mpirun -npernode ppr:4:node -display-map ./main > log3.txt
+mpirun -np 16 --hostfile .hostfile3 ./main > log3.txt
 
 ./create_video.sh

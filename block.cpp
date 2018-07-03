@@ -344,12 +344,15 @@ void Block::write_grid(MPI_File fh, int header_size)
 
         // TODO this is slower ?!
         MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+        //MPI_File_write_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
+    
     for (int y = height + 1; y <= max_height; y++)
     {
         // Empty write so collective write does not block for remaining pixels
         MPI_File_write_at_all(fh, 0, buffer, 0, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
+    
 }
 
 void Block::write(int step_number)
@@ -782,7 +785,7 @@ void Block::step_mpi(int step_number)
         return;
     struct timeval begin;
     gettimeofday(&begin, NULL);
-    write(step_number);
+    //write(step_number);
     if (x == 0 && y == 0)
     {
         printf("Write %03d \t- ", step_number + 1);

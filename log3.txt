@@ -1,0 +1,4 @@
+block_amt: 9
+round: 1
+[mpiexec@DESKTOP-F3KI5P9] Sending Ctrl-C to processes as requested
+[mpiexec@DESKTOP-F3KI5P9] Press Ctrl-C again to force abort

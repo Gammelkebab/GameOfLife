@@ -1,0 +1,402 @@
+block_amt: 4
+round: 1
+Write 001 	- Elapsed: 0.04375s
+Comm. 001 	- Elapsed: 0.00546s
+Step  001 	- Elapsed: 0.00336s
+round: 2
+Write 002 	- Elapsed: 0.04278s
+Comm. 002 	- Elapsed: 0.00326s
+Step  002 	- Elapsed: 0.00336s
+round: 3
+Write 003 	- Elapsed: 0.04041s
+Comm. 003 	- Elapsed: 0.00173s
+Step  003 	- Elapsed: 0.00331s
+round: 4
+Write 004 	- Elapsed: 0.03605s
+Comm. 004 	- Elapsed: 0.00097s
+Step  004 	- Elapsed: 0.00337s
+round: 5
+Write 005 	- Elapsed: 0.03342s
+Comm. 005 	- Elapsed: 0.00167s
+Step  005 	- Elapsed: 0.00332s
+round: 6
+Write 006 	- Elapsed: 0.03988s
+Comm. 006 	- Elapsed: 0.00150s
+Step  006 	- Elapsed: 0.00337s
+round: 7
+Write 007 	- Elapsed: 0.03430s
+Comm. 007 	- Elapsed: 0.00142s
+Step  007 	- Elapsed: 0.00335s
+round: 8
+Write 008 	- Elapsed: 0.03359s
+Comm. 008 	- Elapsed: 0.00099s
+Step  008 	- Elapsed: 0.00333s
+round: 9
+Write 009 	- Elapsed: 0.03293s
+Comm. 009 	- Elapsed: 0.00356s
+Step  009 	- Elapsed: 0.00337s
+round: 10
+Write 010 	- Elapsed: 0.03392s
+Comm. 010 	- Elapsed: 0.00181s
+Step  010 	- Elapsed: 0.00337s
+round: 11
+Write 011 	- Elapsed: 0.03235s
+Comm. 011 	- Elapsed: 0.00386s
+Step  011 	- Elapsed: 0.00338s
+round: 12
+Write 012 	- Elapsed: 0.03279s
+Comm. 012 	- Elapsed: 0.00030s
+Step  012 	- Elapsed: 0.00337s
+round: 13
+Write 013 	- Elapsed: 0.03463s
+Comm. 013 	- Elapsed: 0.00032s
+Step  013 	- Elapsed: 0.00337s
+round: 14
+Write 014 	- Elapsed: 0.03423s
+Comm. 014 	- Elapsed: 0.00030s
+Step  014 	- Elapsed: 0.00331s
+round: 15
+Write 015 	- Elapsed: 0.03359s
+Comm. 015 	- Elapsed: 0.00081s
+Step  015 	- Elapsed: 0.00337s
+round: 16
+Write 016 	- Elapsed: 0.03206s
+Comm. 016 	- Elapsed: 0.00032s
+Step  016 	- Elapsed: 0.00332s
+round: 17
+Write 017 	- Elapsed: 0.03079s
+Comm. 017 	- Elapsed: 0.00296s
+Step  017 	- Elapsed: 0.00332s
+round: 18
+Write 018 	- Elapsed: 0.03768s
+Comm. 018 	- Elapsed: 0.00035s
+Step  018 	- Elapsed: 0.00348s
+round: 19
+Write 019 	- Elapsed: 0.03398s
+Comm. 019 	- Elapsed: 0.00034s
+Step  019 	- Elapsed: 0.00336s
+round: 20
+Write 020 	- Elapsed: 0.03374s
+Comm. 020 	- Elapsed: 0.00362s
+Step  020 	- Elapsed: 0.00339s
+round: 21
+Write 021 	- Elapsed: 0.03385s
+Comm. 021 	- Elapsed: 0.00032s
+Step  021 	- Elapsed: 0.00332s
+round: 22
+Write 022 	- Elapsed: 0.03446s
+Comm. 022 	- Elapsed: 0.00030s
+Step  022 	- Elapsed: 0.00346s
+round: 23
+Write 023 	- Elapsed: 0.04058s
+Comm. 023 	- Elapsed: 0.00030s
+Step  023 	- Elapsed: 0.00337s
+round: 24
+Write 024 	- Elapsed: 0.03462s
+Comm. 024 	- Elapsed: 0.00515s
+Step  024 	- Elapsed: 0.00337s
+round: 25
+Write 025 	- Elapsed: 0.06545s
+Comm. 025 	- Elapsed: 0.02217s
+Step  025 	- Elapsed: 0.00337s
+round: 26
+Write 026 	- Elapsed: 0.04481s
+Comm. 026 	- Elapsed: 0.00344s
+Step  026 	- Elapsed: 0.00337s
+round: 27
+Write 027 	- Elapsed: 0.05800s
+Comm. 027 	- Elapsed: 0.00036s
+Step  027 	- Elapsed: 0.00333s
+round: 28
+Write 028 	- Elapsed: 0.05238s
+Comm. 028 	- Elapsed: 0.00036s
+Step  028 	- Elapsed: 0.00332s
+round: 29
+Write 029 	- Elapsed: 0.04204s
+Comm. 029 	- Elapsed: 0.00285s
+Step  029 	- Elapsed: 0.00337s
+round: 30
+Write 030 	- Elapsed: 0.07509s
+Comm. 030 	- Elapsed: 0.00472s
+Step  030 	- Elapsed: 0.00333s
+round: 31
+Write 031 	- Elapsed: 0.04163s
+Comm. 031 	- Elapsed: 0.02087s
+Step  031 	- Elapsed: 0.00337s
+round: 32
+Write 032 	- Elapsed: 0.05767s
+Comm. 032 	- Elapsed: 0.04636s
+Step  032 	- Elapsed: 0.00337s
+round: 33
+Write 033 	- Elapsed: 0.06538s
+Comm. 033 	- Elapsed: 0.00192s
+Step  033 	- Elapsed: 0.00332s
+round: 34
+Write 034 	- Elapsed: 0.03558s
+Comm. 034 	- Elapsed: 0.00444s
+Step  034 	- Elapsed: 0.00339s
+round: 35
+Write 035 	- Elapsed: 0.03272s
+Comm. 035 	- Elapsed: 0.00397s
+Step  035 	- Elapsed: 0.00331s
+round: 36
+Write 036 	- Elapsed: 0.03435s
+Comm. 036 	- Elapsed: 0.00405s
+Step  036 	- Elapsed: 0.00337s
+round: 37
+Write 037 	- Elapsed: 0.03557s
+Comm. 037 	- Elapsed: 0.00028s
+Step  037 	- Elapsed: 0.00332s
+round: 38
+Write 038 	- Elapsed: 0.03341s
+Comm. 038 	- Elapsed: 0.00508s
+Step  038 	- Elapsed: 0.00332s
+round: 39
+Write 039 	- Elapsed: 0.03445s
+Comm. 039 	- Elapsed: 0.00033s
+Step  039 	- Elapsed: 0.00375s
+round: 40
+Write 040 	- Elapsed: 0.04488s
+Comm. 040 	- Elapsed: 0.00061s
+Step  040 	- Elapsed: 0.00355s
+round: 41
+Write 041 	- Elapsed: 0.03357s
+Comm. 041 	- Elapsed: 0.00168s
+Step  041 	- Elapsed: 0.00332s
+round: 42
+Write 042 	- Elapsed: 0.03553s
+Comm. 042 	- Elapsed: 0.00040s
+Step  042 	- Elapsed: 0.00337s
+round: 43
+Write 043 	- Elapsed: 0.03464s
+Comm. 043 	- Elapsed: 0.00032s
+Step  043 	- Elapsed: 0.00338s
+round: 44
+Write 044 	- Elapsed: 0.03281s
+Comm. 044 	- Elapsed: 0.00198s
+Step  044 	- Elapsed: 0.00333s
+round: 45
+Write 045 	- Elapsed: 0.03606s
+Comm. 045 	- Elapsed: 0.00233s
+Step  045 	- Elapsed: 0.00337s
+round: 46
+Write 046 	- Elapsed: 0.03180s
+Comm. 046 	- Elapsed: 0.00072s
+Step  046 	- Elapsed: 0.00337s
+round: 47
+Write 047 	- Elapsed: 0.03157s
+Comm. 047 	- Elapsed: 0.00160s
+Step  047 	- Elapsed: 0.00332s
+round: 48
+Write 048 	- Elapsed: 0.03017s
+Comm. 048 	- Elapsed: 0.00291s
+Step  048 	- Elapsed: 0.00345s
+round: 49
+Write 049 	- Elapsed: 0.03445s
+Comm. 049 	- Elapsed: 0.00031s
+Step  049 	- Elapsed: 0.00337s
+round: 50
+Write 050 	- Elapsed: 0.03460s
+Comm. 050 	- Elapsed: 0.00031s
+Step  050 	- Elapsed: 0.00338s
+round: 51
+Write 051 	- Elapsed: 0.02894s
+Comm. 051 	- Elapsed: 0.00313s
+Step  051 	- Elapsed: 0.00338s
+round: 52
+Write 052 	- Elapsed: 0.03336s
+Comm. 052 	- Elapsed: 0.00123s
+Step  052 	- Elapsed: 0.00337s
+round: 53
+Write 053 	- Elapsed: 0.03558s
+Comm. 053 	- Elapsed: 0.00129s
+Step  053 	- Elapsed: 0.00337s
+round: 54
+Write 054 	- Elapsed: 0.03260s
+Comm. 054 	- Elapsed: 0.00069s
+Step  054 	- Elapsed: 0.00332s
+round: 55
+Write 055 	- Elapsed: 0.03334s
+Comm. 055 	- Elapsed: 0.00112s
+Step  055 	- Elapsed: 0.00337s
+round: 56
+Write 056 	- Elapsed: 0.03794s
+Comm. 056 	- Elapsed: 0.00167s
+Step  056 	- Elapsed: 0.00333s
+round: 57
+Write 057 	- Elapsed: 0.03398s
+Comm. 057 	- Elapsed: 0.00030s
+Step  057 	- Elapsed: 0.00333s
+round: 58
+Write 058 	- Elapsed: 0.03594s
+Comm. 058 	- Elapsed: 0.00058s
+Step  058 	- Elapsed: 0.00550s
+round: 59
+Write 059 	- Elapsed: 0.03367s
+Comm. 059 	- Elapsed: 0.00032s
+Step  059 	- Elapsed: 0.00337s
+round: 60
+Write 060 	- Elapsed: 0.03193s
+Comm. 060 	- Elapsed: 0.00252s
+Step  060 	- Elapsed: 0.00332s
+round: 61
+Write 061 	- Elapsed: 0.04491s
+Comm. 061 	- Elapsed: 0.00125s
+Step  061 	- Elapsed: 0.00332s
+round: 62
+Write 062 	- Elapsed: 0.03458s
+Comm. 062 	- Elapsed: 0.00031s
+Step  062 	- Elapsed: 0.00332s
+round: 63
+Write 063 	- Elapsed: 0.03297s
+Comm. 063 	- Elapsed: 0.00092s
+Step  063 	- Elapsed: 0.00331s
+round: 64
+Write 064 	- Elapsed: 0.03527s
+Comm. 064 	- Elapsed: 0.00030s
+Step  064 	- Elapsed: 0.00332s
+round: 65
+Write 065 	- Elapsed: 0.03791s
+Comm. 065 	- Elapsed: 0.00033s
+Step  065 	- Elapsed: 0.00333s
+round: 66
+Write 066 	- Elapsed: 0.03361s
+Comm. 066 	- Elapsed: 0.00029s
+Step  066 	- Elapsed: 0.00333s
+round: 67
+Write 067 	- Elapsed: 0.03291s
+Comm. 067 	- Elapsed: 0.00449s
+Step  067 	- Elapsed: 0.00342s
+round: 68
+Write 068 	- Elapsed: 0.02990s
+Comm. 068 	- Elapsed: 0.00165s
+Step  068 	- Elapsed: 0.00337s
+round: 69
+Write 069 	- Elapsed: 0.03337s
+Comm. 069 	- Elapsed: 0.00462s
+Step  069 	- Elapsed: 0.00337s
+round: 70
+Write 070 	- Elapsed: 0.03363s
+Comm. 070 	- Elapsed: 0.00031s
+Step  070 	- Elapsed: 0.00337s
+round: 71
+Write 071 	- Elapsed: 0.03274s
+Comm. 071 	- Elapsed: 0.00385s
+Step  071 	- Elapsed: 0.00332s
+round: 72
+Write 072 	- Elapsed: 0.03480s
+Comm. 072 	- Elapsed: 0.00030s
+Step  072 	- Elapsed: 0.00337s
+round: 73
+Write 073 	- Elapsed: 0.03076s
+Comm. 073 	- Elapsed: 0.00720s
+Step  073 	- Elapsed: 0.00336s
+round: 74
+Write 074 	- Elapsed: 0.03247s
+Comm. 074 	- Elapsed: 0.00127s
+Step  074 	- Elapsed: 0.00338s
+round: 75
+Write 075 	- Elapsed: 0.03263s
+Comm. 075 	- Elapsed: 0.00122s
+Step  075 	- Elapsed: 0.00337s
+round: 76
+Write 076 	- Elapsed: 0.03461s
+Comm. 076 	- Elapsed: 0.00029s
+Step  076 	- Elapsed: 0.00349s
+round: 77
+Write 077 	- Elapsed: 0.03483s
+Comm. 077 	- Elapsed: 0.00331s
+Step  077 	- Elapsed: 0.00336s
+round: 78
+Write 078 	- Elapsed: 0.03531s
+Comm. 078 	- Elapsed: 0.00203s
+Step  078 	- Elapsed: 0.00333s
+round: 79
+Write 079 	- Elapsed: 0.03482s
+Comm. 079 	- Elapsed: 0.00032s
+Step  079 	- Elapsed: 0.00332s
+round: 80
+Write 080 	- Elapsed: 0.03298s
+Comm. 080 	- Elapsed: 0.00517s
+Step  080 	- Elapsed: 0.00346s
+round: 81
+Write 081 	- Elapsed: 0.03143s
+Comm. 081 	- Elapsed: 0.00327s
+Step  081 	- Elapsed: 0.00347s
+round: 82
+Write 082 	- Elapsed: 0.03529s
+Comm. 082 	- Elapsed: 0.00079s
+Step  082 	- Elapsed: 0.00337s
+round: 83
+Write 083 	- Elapsed: 0.03281s
+Comm. 083 	- Elapsed: 0.00297s
+Step  083 	- Elapsed: 0.00337s
+round: 84
+Write 084 	- Elapsed: 0.03432s
+Comm. 084 	- Elapsed: 0.00328s
+Step  084 	- Elapsed: 0.00348s
+round: 85
+Write 085 	- Elapsed: 0.03386s
+Comm. 085 	- Elapsed: 0.00032s
+Step  085 	- Elapsed: 0.00332s
+round: 86
+Write 086 	- Elapsed: 0.03820s
+Comm. 086 	- Elapsed: 0.00032s
+Step  086 	- Elapsed: 0.00331s
+round: 87
+Write 087 	- Elapsed: 0.03112s
+Comm. 087 	- Elapsed: 0.00317s
+Step  087 	- Elapsed: 0.00349s
+round: 88
+Write 088 	- Elapsed: 0.03130s
+Comm. 088 	- Elapsed: 0.00507s
+Step  088 	- Elapsed: 0.00338s
+round: 89
+Write 089 	- Elapsed: 0.03569s
+Comm. 089 	- Elapsed: 0.00031s
+Step  089 	- Elapsed: 0.00337s
+round: 90
+Write 090 	- Elapsed: 0.03530s
+Comm. 090 	- Elapsed: 0.00031s
+Step  090 	- Elapsed: 0.00370s
+round: 91
+Write 091 	- Elapsed: 0.03533s
+Comm. 091 	- Elapsed: 0.00030s
+Step  091 	- Elapsed: 0.00336s
+round: 92
+Write 092 	- Elapsed: 0.03078s
+Comm. 092 	- Elapsed: 0.00327s
+Step  092 	- Elapsed: 0.00334s
+round: 93
+Write 093 	- Elapsed: 0.03599s
+Comm. 093 	- Elapsed: 0.00032s
+Step  093 	- Elapsed: 0.00337s
+round: 94
+Write 094 	- Elapsed: 0.04440s
+Comm. 094 	- Elapsed: 0.00031s
+Step  094 	- Elapsed: 0.00349s
+round: 95
+Write 095 	- Elapsed: 0.03357s
+Comm. 095 	- Elapsed: 0.00108s
+Step  095 	- Elapsed: 0.00337s
+round: 96
+Write 096 	- Elapsed: 0.03606s
+Comm. 096 	- Elapsed: 0.00076s
+Step  096 	- Elapsed: 0.00335s
+round: 97
+Write 097 	- Elapsed: 0.03263s
+Comm. 097 	- Elapsed: 0.00031s
+Step  097 	- Elapsed: 0.00337s
+round: 98
+Write 098 	- Elapsed: 0.03136s
+Comm. 098 	- Elapsed: 0.00319s
+Step  098 	- Elapsed: 0.00333s
+round: 99
+Write 099 	- Elapsed: 0.03291s
+Comm. 099 	- Elapsed: 0.00031s
+Step  099 	- Elapsed: 0.00350s
+round: 100
+Write 100 	- Elapsed: 0.03149s
+Comm. 100 	- Elapsed: 0.00310s
+Step  100 	- Elapsed: 0.00337s
+Runtime: 4.26403s

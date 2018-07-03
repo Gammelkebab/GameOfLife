@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     char processor_name[100];
     int processor_name_length;
     MPI_Get_processor_name(processor_name, &processor_name_length);
-    printf("%d => %s\n", block_num, processor_name);
+    printf("%d \t=> %s\n", block_num, processor_name);
 
     Block *block = new Block(block_num, block_amt, GRIDSIZE_X, GRIDSIZE_Y);
 

@@ -3,8 +3,8 @@
 #PBS -j oe
 #PBS -m ae
 #PBS -l nodes=4:ppn=12
-#PBS -l walltime=0:01:00
-#PBS -l mem=1gb
+#PBS -l walltime=0:00:10
+#PBS -l mem=0.1gb
 #PBS -W x=PARTITION:tane
 
 cd $BIGWORK/GameOfLife

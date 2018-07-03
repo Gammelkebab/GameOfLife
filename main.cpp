@@ -48,6 +48,11 @@ int main(int argc, char **argv)
         printf("block_amt: %d\n", block_amt);
     }
 
+    char processor_name[100];
+    int processor_name_length;
+    MPI_Get_processor_name(processor_name, &processor_name_length);
+    printf("%d => %s\n", block_num, processor_name);
+
     Block *block = new Block(block_num, block_amt, GRIDSIZE_X, GRIDSIZE_Y);
 
     int active_comm_amt = block->world->rows * block->world->cols;

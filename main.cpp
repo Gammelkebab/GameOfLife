@@ -8,21 +8,21 @@
 #include "./block.h"
 #include "./figures.h"
 
-#define MEDIUM //uses small resolution, less iterations for testing
+#define LARGE //uses small resolution, less iterations for testing
 
 #ifdef SMALL
-#define GRIDSIZE_X 1920
-#define GRIDSIZE_Y 1080
-#define FRAMES 900
+#define GRIDSIZE_X 202
+#define GRIDSIZE_Y 200
+#define FRAMES 100
 #else
 #ifdef MEDIUM
 #define GRIDSIZE_X 1600
 #define GRIDSIZE_Y 900
 #define FRAMES 100
 #else
-#define GRIDSIZE_X 202
-#define GRIDSIZE_Y 200
-#define FRAMES 100
+#define GRIDSIZE_X 1920
+#define GRIDSIZE_Y 1080
+#define FRAMES 900
 #endif
 #endif
 

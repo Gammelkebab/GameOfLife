@@ -3,16 +3,17 @@
 #PBS -j oe
 #PBS -m ae
 #PBS -l nodes=4:ppn=12
-#PBS -l walltime=0:00:10
-#PBS -l mem=1mb
+#PBS -l walltime=0:00:30
+#PBS -l mem=1gb
 #PBS -W x=PARTITION:tane
 
 cd $BIGWORK/GameOfLife
 
-module load foss
+module load intel
 
 make full
 
-mpirun -np 48 -npernode 12 -display-map ./main > log4.txt
+# mpirun -np 16 --hostfile $PBS_NODEFILE -display-allocation  ./main > log3.txt
+mpirun ./main > log3.txt
 
 ./create_video.sh

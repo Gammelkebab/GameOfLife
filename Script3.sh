@@ -13,6 +13,7 @@ module load foss
 
 make full
 
-mpirun -np 16 --hostfile $PBS_NODEFILE ./main > log3.txt
+# mpirun -np 16 --hostfile $PBS_NODEFILE -display-allocation  ./main > log3.txt
+mpirun -display-allocation ./main > log3.txt
 
 ./create_video.sh

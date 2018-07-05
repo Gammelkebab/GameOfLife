@@ -356,6 +356,9 @@ void Block::write_grid(MPI_File fh, int header_size)
 
 void Block::write(int step_number)
 {
+    struct timeval begin;
+    gettimeofday(&begin, NULL);
+
     char *filename = new char[100];
     sprintf(filename, "./images/frame_%03d.pbm", step_number);
 
@@ -373,7 +376,12 @@ void Block::write(int step_number)
         MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
     }
 
-    struct timeval begin;
+    if (x == 0 && y == 0)
+    {
+        printf("Before write: ");
+        print_time_since(begin);
+    }
+
     gettimeofday(&begin, NULL);
     write_grid(fh, header_size);
     if (x == 0 && y == 0)
@@ -381,9 +389,18 @@ void Block::write(int step_number)
         printf("Write_grid: ");
         print_time_since(begin);
     }
+    
+    gettimeofday(&begin, NULL);
 
-    //MPI_Barrier(active_comm); // TODO remove barrier
+    MPI_Barrier(active_comm); // TODO remove barrier
     MPI_File_close(&fh);
+    
+
+    if (x == 0 && y == 0)
+    {
+        printf("After write: ");
+        print_time_since(begin);
+    }
 }
 
 /* Functions calculating the surrounding block numbers */

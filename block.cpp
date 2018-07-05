@@ -367,7 +367,7 @@ void Block::write(int step_number)
 
     if (x == 0 && y == 0)
     {
-        printf("File open write: ");
+        printf("File open: ");
         print_time_since(begin);
     }
 
@@ -822,6 +822,7 @@ void Block::step_mpi(int step_number)
     struct timeval begin;
     gettimeofday(&begin, NULL);
     write(step_number);
+    MPI_Barrier(active_comm);
     if (x == 0 && y == 0)
     {
         printf("Write %03d \t- ", step_number + 1);
@@ -829,6 +830,7 @@ void Block::step_mpi(int step_number)
     }
     gettimeofday(&begin, NULL);
     communicate();
+    MPI_Barrier(active_comm);
     if (x == 0 && y == 0)
     {
         printf("Comm. %03d \t- ", step_number + 1);
@@ -836,6 +838,7 @@ void Block::step_mpi(int step_number)
     }
     gettimeofday(&begin, NULL);
     step();
+    MPI_Barrier(active_comm);
     if (x == 0 && y == 0)
     {
         printf("Step  %03d \t- ", step_number + 1);

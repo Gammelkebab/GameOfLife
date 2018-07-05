@@ -9,7 +9,7 @@
 
 cd $BIGWORK/GameOfLife
 
-module load foss
+module load intel
 
 make full
 

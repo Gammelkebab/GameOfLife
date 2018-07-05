@@ -382,7 +382,7 @@ void Block::write(int step_number)
         print_time_since(begin);
     }
 
-    MPI_Barrier(active_comm); // TODO remove barrier
+    //MPI_Barrier(active_comm); // TODO remove barrier
     MPI_File_close(&fh);
 }
 

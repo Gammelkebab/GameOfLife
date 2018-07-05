@@ -365,6 +365,14 @@ void Block::write(int step_number)
     MPI_File fh;
     MPI_File_open(active_comm, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
 
+    if (x == 0 && y == 0)
+    {
+        printf("File open write: ");
+        print_time_since(begin);
+    }
+
+    gettimeofday(&begin, NULL);
+
     // Create the header lines
     char *header = new char[100];
     sprintf(header, "P4\n%d %d\n", world->width, world->height);

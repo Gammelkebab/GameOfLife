@@ -1,4 +1,4 @@
-CC=mpic++
+CC=mpicxx
 CFLAGS = -g -Wall -Wextra -O3
 
 OBJ = main.o block.o world.o test.o

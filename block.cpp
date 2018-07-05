@@ -796,7 +796,7 @@ void Block::step_mpi(int step_number)
         return;
     struct timeval begin;
     gettimeofday(&begin, NULL);
-    //write(step_number);
+    write(step_number);
     if (x == 0 && y == 0)
     {
         printf("Write %03d \t- ", step_number + 1);

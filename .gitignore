@@ -5,3 +5,4 @@ test
 images/*
 !images/.gitkeep
 log*
+output.gif

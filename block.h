@@ -22,43 +22,42 @@ unsigned char **array2D(int width, int height);
 
 class Block
 {
-private:
+  private:
 	typedef unsigned char **Grid;
 
-private:
+  private:
 	int getNeighbours(unsigned char **grid, int x, int y);
 	int isAlive(int neighbours, unsigned char cell);
 
-public:
+  public:
 	World *world;
 
-public:
+  public:
 	int block_num;
-	int x, y;																			 // x and y position of the block (in blocks not pixels)
-	int width, height;														 // height and width of the block (without borders)
-	int max_height;																 // The maximum height between all blocks (used for collective write)
-	int starting_x, starting_y;										 // upper left corner x and y position (pixels)
+	int x, y;									   // x and y position of the block (in blocks not pixels)
+	int width, height;							   // height and width of the block (without borders)
+	int max_height;								   // The maximum height between all blocks (used for collective write)
+	int starting_x, starting_y;					   // upper left corner x and y position (pixels)
 	bool first_row, first_col, last_row, last_col; // booleans indicating specific block positions
 
-public:
-	Grid grid; // The actual data of all the assigned pixels
-						 // REMEMBER! this grid has the borders stored as well
-						 // => it has size (width + 2, height + 2)
-						 // => the 'real' pxiels go from (1, 1) up to (width, height)
+  public:
+	Grid grid;		// The actual data of all the assigned pixels
+					// REMEMBER! this grid has the borders stored as well
+					// => it has size (width + 2, height + 2)
+					// => the 'real' pxiels go from (1, 1) up to (width, height)
 	Grid next_grid; // Next grid used to calculate step
+
+  public:
+	Grid *send_block_buffers; // Grid used to store data to be send
 	Grid grid_to_write; // Grid used to store data to be written
 
-public:
+  public:
 	MPI_Comm active_comm;
 
-	public:
-	Grid *send_block_buffers;
-	Grid *recv_block_buffers;
-
-public:
+  public:
 	Block(int block_num, int block_amt, int gridsize_x, int gridsize_y);
 
-public:
+  public:
 	void printBlock(bool print_world = true);
 	void printGrid();
 

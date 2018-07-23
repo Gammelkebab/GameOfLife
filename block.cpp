@@ -84,8 +84,12 @@ Block::Block(int block_num, int block_amt, int gridsize_x, int gridsize_y)
 
     grid = array2D(width + 2, height + 2);
     next_grid = array2D(width + 2, height + 2);
-
-    send_block_buffers = malloc(world->active_blocks * sizeof());
+    grid_to_write = array2D(world->width, world->height);
+    send_block_buffers = malloc((world->active_blocks - 1) * sizeof(Grid));
+    for (int i = 0; i < world->active_blocks; i++)
+    {
+        send_block_buffers[i] = array2D(width, height);
+    }
 
     randomize();
 }
@@ -305,7 +309,7 @@ void print_unsigned_char_array(unsigned char *arr, int size)
     printf("]\n");
 }
 
-void write(int i)
+void write(int i, Grid grid)
 {
     //pbm in mode P4 reads bitwise, 1 black, 0 white
     char *filename = new char[100];
@@ -697,21 +701,33 @@ void Block::communicate_borders()
     }
 }
 
-void Block::send_block(int writer)
+void Block::send_block(int recv_block)
 {
+    MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest,
+              int tag, MPI_Comm comm, MPI_Request *request)
+        MPI_Isend(grid, )
 }
+
+void Block::receive_block(int send_block);
 
 void Block::communicate_for_write(int round)
 {
-    int writer = round % world->active_blocks;
+    int writer_block = round % world->active_blocks;
 
-    if (writer == block_num)
+    if (writer_block == block_num)
     {
+        // It's this threads turn to write
+        for (int sender = 0; sender < active_blocks; sender++)
+        {
+            receive_block(send_block);
+        }
         write(round);
     }
     else
     {
-        send_block(writer);
+        // It's someone elses turn to write
+        // Someone needs the info about this block
+        send_block(writer_block);
     }
 }
 

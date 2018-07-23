@@ -14,6 +14,6 @@ module load intel
 make full
 
 # mpirun -np 16 --hostfile $PBS_NODEFILE -display-allocation  ./main > log3.txt
-mpirun ./main > log3.txt
+mpirun ./main > log4.txt
 
 ./create_video.sh

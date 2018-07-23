@@ -9,6 +9,7 @@ class World
   public:
     int width, height;
     int rows, cols;
+    int active_blocks;
 
   public:
     World(int width, int height, int block_amt);

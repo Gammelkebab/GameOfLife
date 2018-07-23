@@ -22,42 +22,44 @@ unsigned char **array2D(int width, int height);
 
 class Block
 {
-  private:
+private:
 	typedef unsigned char **Grid;
 
-  private:
+private:
 	int getNeighbours(unsigned char **grid, int x, int y);
 	int isAlive(int neighbours, unsigned char cell);
 
-  public:
+public:
 	World *world;
 
-  public:
-	int x, y;									   // x and y position of the block (in blocks not pixels)
-	int width, height;							   // height and width of the block (without borders)
-	int max_height;								   // The maximum height between all blocks (used for collective write)
-	int starting_x, starting_y;					   // upper left corner x and y position (pixels)
+public:
+	int block_num;
+	int x, y;																			 // x and y position of the block (in blocks not pixels)
+	int width, height;														 // height and width of the block (without borders)
+	int max_height;																 // The maximum height between all blocks (used for collective write)
+	int starting_x, starting_y;										 // upper left corner x and y position (pixels)
 	bool first_row, first_col, last_row, last_col; // booleans indicating specific block positions
 
-  public:
+public:
 	Grid grid; // The actual data of all the assigned pixels
-			   // REMEMBER! this grid has the borders stored as well
-			   // => it has size (width + 2, height + 2)
-			   // => the 'real' pxiels go from (1, 1) up to (width, height)
-	Grid next_grid;
+						 // REMEMBER! this grid has the borders stored as well
+						 // => it has size (width + 2, height + 2)
+						 // => the 'real' pxiels go from (1, 1) up to (width, height)
+	Grid next_grid; // Next grid used to calculate step
+	Grid grid_to_write; // Grid used to store data to be written
 
-  public:
+public:
 	MPI_Comm active_comm;
 
-  public:
+	public:
+	Grid *send_block_buffers;
+	Grid *recv_block_buffers;
+
+public:
 	Block(int block_num, int block_amt, int gridsize_x, int gridsize_y);
 
-	// TODO
-	void deleteBlock();
-
-  public:
+public:
 	void printBlock(bool print_world = true);
-	//console output, small grid is preferable
 	void printGrid();
 
 	//fill the grid randomly with ~35% alive
@@ -68,7 +70,6 @@ class Block
 	void write(int step_number);
 
 	/* Functions calculating the surrounding block numbers */
-
 	int position_to_block_number(int x, int y);
 
 	int north();
@@ -98,14 +99,18 @@ class Block
 	int count_by_direction(Border_direction dir);
 
 	/* send und receive */
-	void send(Border_direction target_dir, unsigned char *buffer, int element_count);
-	void recv(Border_direction source_dir, unsigned char *buffer, int element_count);
+	void send_border(Border_direction target_dir, unsigned char *buffer, int element_count);
+	void recv_border(Border_direction source_dir, unsigned char *buffer, int element_count);
+	void send_block(int writer);
+	void recv_block();
 
 	/**
      * TODO comment
      */
 	// REMINDER! Use tags for directions of communication, so barriers can be avoided
-	void communicate();
+	void communicate_borders();
+	void communicate_for_write(int round);
+	void communicate(int round);
 
 	/**
      * next evolution
@@ -123,7 +128,7 @@ class Block
      * 2. communicate all border pixels
      * 3. do the actual step algorithm
      */
-	void step_mpi(int step_number);
+	void step_mpi(int round);
 
 	void set_bit(unsigned char *data, int position, int val);
 	void set_active_comm(MPI_Comm active_comm);

@@ -32,6 +32,8 @@ World::World(int width, int height, int block_amt) : width(width), height(height
     {
         cols++;
     }
+
+    active_blocks = rows * cols;
 }
 
 void World::print()

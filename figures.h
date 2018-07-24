@@ -1,6 +1,9 @@
 #ifndef figures_h
 #define figures_h
 
+namespace figures
+{
+
 /**
 the figures are ignoring the size of the grid, offset has to be checked manually
 **/
@@ -36,5 +39,7 @@ void pentadecathlon(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
     grid[1 + offset_Y][1 + offset_X] = 0;
     grid[1 + offset_Y][6 + offset_X] = 0;
 }
+
+} // namespace glider
 
 #endif

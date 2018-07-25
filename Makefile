@@ -1,10 +1,10 @@
 CC=mpicxx
 CFLAGS = -g -Wall -Wextra -O3
 
-OBJ = main.o block.o world.o test.o
-OBJ_MAIN = main.o block.o world.o
-OBJ_TEST = test.o block.o world.o
-BIN = main
+OBJ := $(wildcard src/*.cpp)
+OBJ_MAIN := $(filter-out src/main.cpp, $(OBJ))
+OBJ_TEST := $(filter-out src/test.cpp, $(OBJ))
+BIN = main test
 
 #first target
 main : $(OBJ_MAIN)

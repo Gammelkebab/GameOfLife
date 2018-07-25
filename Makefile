@@ -1,9 +1,10 @@
 CC=mpicxx
 CFLAGS = -g -Wall -Wextra -O3
 
-OBJ := $(wildcard src/*.cpp)
-OBJ_MAIN := $(filter-out src/main.cpp, $(OBJ))
-OBJ_TEST := $(filter-out src/test.cpp, $(OBJ))
+SRC = $(wildcard src/*.cpp)
+OBJ = $(SRC:.cpp=.o)
+OBJ_MAIN = $(filter-out src/main.cpp, $(OBJ))
+OBJ_TEST = $(filter-out src/test.cpp, $(OBJ))
 BIN = main test
 
 #first target

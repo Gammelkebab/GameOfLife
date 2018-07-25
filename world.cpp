@@ -6,6 +6,7 @@
 #include "dummy_world.h"
 #include "array2d.h"
 #include "active_block.h"
+#include "timing.h"
 
 World *World::create(int width, int height, int proc_amt, int proc_num)
 {
@@ -14,18 +15,6 @@ World *World::create(int width, int height, int proc_amt, int proc_num)
     int rows = floor(rows_tmp);
     int cols = floor(proc_amt / rows_tmp);
 
-    if (proc_num < rows * cols)
-    {
-        return new World(width, height, rows, cols, proc_amt, proc_num);
-    }
-    else
-    {
-        return new Dummy_world();
-    }
-}
-
-World::World(int width, int height, int rows, int cols, int proc_amt, int proc_num) : width(width), height(height)
-{
     // Try to create one more row or column (Might be possible due to flooring)
     int r1 = (rows + 1) * cols;
     int c1 = rows * (cols + 1);
@@ -49,6 +38,23 @@ World::World(int width, int height, int rows, int cols, int proc_amt, int proc_n
         cols++;
     }
 
+    if (proc_num < rows * cols)
+    {
+        return new World(width, height, rows, cols, proc_amt, proc_num);
+    }
+    else
+    {
+        return new Dummy_world();
+    }
+}
+
+World::World(int width, int height, int rows, int cols, int proc_amt, int proc_num) : width(width), height(height), rows(rows), cols(cols), proc_num(proc_num)
+{
+    if (proc_num == 0)
+    {
+        master = true;
+    }
+
     block_amt = rows * cols;
 
     blocks = new Block **[rows];
@@ -69,6 +75,9 @@ World::World(int width, int height, int rows, int cols, int proc_amt, int proc_n
             }
         }
     }
+
+    send_requests = new MPI_Request[block_amt];
+    recv_requests = new MPI_Request[block_amt];
 
     set_active_comm();
 }
@@ -98,40 +107,58 @@ void World::set_active_comm()
  * 2. communicate all border pixels
  * 3. do the actual step algorithm
  */
-void World::step(int iteration)
+void World::tick(int iteration, int total_iterations)
 {
     struct timeval begin;
     gettimeofday(&begin, NULL);
-    write(round);
+    write(iteration, total_iterations); // Write
     MPI_Barrier(active_comm);
-    if (x == 0 && y == 0)
+    if (master)
     {
-        printf("Write %03d \t- ", round + 1);
+        printf("Write %03d \t- ", iteration + 1);
         print_time_since(begin);
     }
     gettimeofday(&begin, NULL);
-    communicate(round);
+    communicate(iteration); // Communicate
     MPI_Barrier(active_comm);
-    if (x == 0 && y == 0)
+    if (master)
     {
-        printf("Comm. %03d \t- ", round + 1);
+        printf("Comm. %03d \t- ", iteration + 1);
         print_time_since(begin);
     }
     gettimeofday(&begin, NULL);
-    step();
+    step(iteration); // Step
     MPI_Barrier(active_comm);
-    if (x == 0 && y == 0)
+    if (master)
     {
-        printf("Step  %03d \t- ", round + 1);
+        printf("Step  %03d \t- ", iteration + 1);
         print_time_since(begin);
     }
 }
 
-void World::write(int step)
+void World::write(int iteration, int total_iterations)
 {
-    if (inactive)
-        return;
+    int writing_block_num = iteration % proc_num;
+    if (writing_block_num == proc_num) // This thread has to write
+    {
+        if (iteration == 0) {
+            load_for_write(); // Initial load
+        }
+        write_to_file(iteration); // File write
+        if (iteration < total_iterations - 1)
+        {
+            load_for_write(); // Normal load
+        }
+    }
+    else // Someone else has to write
+    {
+        // Send the data of the active block to the current writer
+        active_block->send_for_write(writing_block_num, &send_requests[writing_block_num]);
+    }
+}
 
+void World::write_to_file(int step)
+{
     //pbm in mode P4 reads bitwise, 1 black, 0 white
     char *filename = new char[100];
     sprintf(filename, "./images/frame_%03d.pbm", step);
@@ -155,16 +182,30 @@ void World::write(int step)
     memset(out, 0, gridsize_x_byte * height);
 
     // Delegate the actual writing process to the blocks
-    for (int y = 0; y < height; y++)
+    for (int y = 0; y < rows; y++)
     {
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < cols; x++)
         {
             blocks[y][x]->write(out, gridsize_x_byte);
         }
     }
 
+    // TODO
+    //MPI_File_open()
+    //MPI_File_iwrite()
     fwrite(&out[0], sizeof(char), gridsize_x_byte * height, outfile);
     fclose(outfile);
+}
+
+// Communicate borders from and to the active block
+void World::communicate(int iteration)
+{
+    active_block->communicate(iteration);
+}
+
+void World::step(int iteration)
+{
+    active_block->step();
 }
 
 void World::print()
@@ -178,4 +219,19 @@ void World::print()
 void World::fill(unsigned char value)
 {
     active_block->fill(value);
+}
+
+void World::load_for_write()
+{
+    for (int y = 0; y < rows; y++)
+    {
+        for (int x = 0; x < cols; x++)
+        {
+            int block_num = y * cols + x;
+            if (block_num != proc_num)
+            {
+                blocks[y][x]->load_for_write(&recv_requests[block_num]);
+            }
+        }
+    }
 }

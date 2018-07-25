@@ -64,7 +64,7 @@ int main(int argc, char **argv)
         {
             printf("round: %d\n", i + 1);
         }
-        world->step(i);
+        world->tick(i, FRAMES);
     }
 
     gettimeofday(&end, NULL);

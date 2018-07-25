@@ -18,14 +18,14 @@ private:
   int isAlive(int neighbours, unsigned char cell);
 
 private:
+  Grid grid;      // The actual data of all the assigned pixels
+                  // REMEMBER! this grid has the borders stored as well
+                  // => it has size (width + 2, height + 2)
+                  // => the 'real' pxiels go from (1, 1) up to (width, height)
   Grid next_grid; // Next grid used to calculate step
 
 private:
   Grid *send_block_buffers; // Grid used to store data to be send
-  Grid grid_to_write;       // Grid used to store data to be written
-
-private:
-  MPI_Comm active_comm;
 
 public:
   void printBlock(bool print_world = true);
@@ -35,7 +35,6 @@ public:
   void randomize();
 
   void buffer_row(unsigned char *buffer, int row);
-  void write_grid(MPI_File fh, int header_size);
 
   /* Functions calculating the surrounding block numbers */
   int position_to_block_number(int x, int y);
@@ -83,6 +82,13 @@ public:
      */
   void step();
 
+  void store_grid_compressed(Grid target);                   // Loads the information of this block into another grid
+                                                             // The information about 8 Pixels is compressed into 1 byte
+  void load_for_write();                                     // Loads the information of this block into the write_grid
+                                                             // The information about 8 Pixels is compressed into 1 byte
+  void send_for_write(int target_num, MPI_Request *request); // Sends the information of this block to another thread
+                                                             // The information about 8 Pixels is compressed into 1 byte
+
   /* 
      * MPI Additions to the normal step:
      * There are 3 parts to every step:
@@ -93,7 +99,6 @@ public:
   void step_mpi(int round);
 
   void set_bit(unsigned char *data, int position, int val);
-  void set_active_comm(MPI_Comm active_comm);
 
 public:
   void fill(unsigned char val);

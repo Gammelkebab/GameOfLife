@@ -11,11 +11,10 @@
 Active_block::Active_block(World *world, int block_num) : Block(world, block_num)
 {
     next_grid = array2D(width + 2, height + 2);
-    grid_to_write = array2D(world->width, world->height);
     send_block_buffers = malloc((world->block_amt - 1) * sizeof(Grid));
     for (int i = 0; i < world->block_amt; i++)
     {
-        send_block_buffers[i] = array2D(width, height);
+        send_block_buffers[i] = array2D(max_width_byte, max_height_byte);
     }
 
     randomize();
@@ -465,7 +464,7 @@ void Active_block::send_border(Border_direction target_dir, unsigned char *buffe
     // TODO blocking send does not work so far, as there might be an uneven amount of blocks in a row/col
     //MPI_Send(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, active_comm);
     MPI_Request request;
-    MPI_Isend(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, active_comm, &request);
+    MPI_Isend(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, world->active_comm, &request);
 }
 
 void Active_block::recv_border(Border_direction source_dir, unsigned char *buffer)
@@ -473,7 +472,7 @@ void Active_block::recv_border(Border_direction source_dir, unsigned char *buffe
     int element_count = count_by_direction(source_dir);
     int source_block = neighbour_number(source_dir);
     int tag = opposite_direction(source_dir);
-    MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, active_comm, MPI_STATUS_IGNORE);
+    MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, world->active_comm, MPI_STATUS_IGNORE);
 }
 
 /**
@@ -502,35 +501,13 @@ void Active_block::communicate_borders()
         unwrap(recv_buffer, opp);
 
         // TODO as soon as send is blocking again
-        MPI_Barrier(active_comm);
-    }
-}
-
-void Active_block::communicate_for_write(int round)
-{
-    int writer_block = round % world->block_amt;
-
-    if (writer_block == block_num)
-    {
-        // It's this threads turn to write
-        for (int sender = 0; sender < active_blocks; sender++)
-        {
-            receive_block(send_block);
-        }
-        write(round);
-    }
-    else
-    {
-        // It's someone elses turn to write
-        // Someone needs the info about this block
-        send_block(writer_block);
+        MPI_Barrier(world->active_comm);
     }
 }
 
 void Active_block::communicate(int round)
 {
     communicate_borders();
-    communicate_for_write(round);
 }
 
 /**
@@ -573,4 +550,38 @@ void Active_block::glider(int x, int y)
 {
     using namespace figures;
     figures::glider(grid, x, y);
+}
+
+void Active_block::store_grid_compressed(Grid target)
+{
+    memset(target, 0, width_byte * height_byte);
+    for (int y = 0; y < height_byte; y++)
+    {
+        for (int x = 0; x < width_byte; x++)
+        {
+            //information about 8 cells are packed in one byte
+            for (int k = 0; k < 8; ++k)
+            {
+                if ((x + starting_x) * 8 + k >= width)
+                {
+                    break;
+                }
+                if (grid[y + starting_y][(x + starting_x) * 8 + k] == 1)
+                {
+                    target[y + starting_y][x + starting_x] += pow(2, 7 - k);
+                }
+            }
+        }
+    }
+}
+
+void Active_block::load_for_write()
+{
+    store_grid_compressed(write_grid);
+}
+
+void Active_block::send_for_write(int target_num, MPI_Request *request)
+{
+    store_grid_compressed(send_block_buffers[target_num]);
+    MPI_Isend(send_block_buffers[target_num], max_width_byte * max_height_byte, MPI_UNSIGNED_CHAR, target_num, target_num, world->active_comm, request);
 }

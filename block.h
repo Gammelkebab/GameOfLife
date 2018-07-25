@@ -8,29 +8,29 @@ typedef unsigned char **Grid;
 
 class Block
 {
-  public:
+public:
 	Block(World *world, int block_num);
 
-  protected:
+protected:
 	World *world;
 
-  protected:
-	int block_num;
-	int x, y;									   // x and y position of the block (in blocks not pixels)
-	int width, height;							   // height and width of the block (without borders)
-	int max_height;								   // The maximum height between all blocks (used for collective write)
-	int starting_x, starting_y;					   // upper left corner x and y position (pixels)
+protected:
+	int block_num;																 // the number of this block
+	int x, y;																			 // x and y position of the block (in blocks not pixels)
+	int width, height;														 // height and width of the block (without borders)
+	int width_byte, height_byte;									 // height and width of the block in compressed in bytes
+	int max_width, max_height;										 // the maximum width and height between all blocks
+	int max_width_byte, max_height_byte;					 // the maximum width and height between all blocks compressed into bytes
+	int starting_x, starting_y;										 // upper left corner x and y position (pixels)
 	bool first_row, first_col, last_row, last_col; // booleans indicating specific block positions
 
-  protected:
-	Grid grid; // The actual data of all the assigned pixels
-		// REMEMBER! this grid has the borders stored as well
-		// => it has size (width + 2, height + 2)
-		// => the 'real' pxiels go from (1, 1) up to (width, height)
+protected:
+	Grid write_grid; // Holds the data needed for one write
 
-  public:
+public:
 	// Delegate methods
 	void write(char *grid, int bytes_per_row);
+	void load_for_write(MPI_Request *request);
 	void send_block();
 	void recv_block();
 };

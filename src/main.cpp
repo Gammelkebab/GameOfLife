@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     //world->print();
 
     world->fill(0);
-    world->glider(25, 25);
+    world->glider(750, 400);
 
     for (int i = 0; i < FRAMES; ++i)
     {

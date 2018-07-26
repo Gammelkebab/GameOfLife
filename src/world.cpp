@@ -171,6 +171,7 @@ void World::write(int iteration, int total_iterations)
         MPI_Request send_request = send_requests[writing_block_num];
         if (send_request)
         {
+            debug("Waiting on send request\n");
             MPI_Wait(&send_request, MPI_STATUS_IGNORE);
         }
         active_block->send_for_write(writing_block_num, &send_requests[writing_block_num]);
@@ -246,6 +247,8 @@ void World::load_for_write()
             if (block_num != proc_num)
             {
                 blocks[y][x]->load_for_write(&recv_requests[block_num]);
+            } else {
+                active_block->load_for_write();
             }
         }
     }

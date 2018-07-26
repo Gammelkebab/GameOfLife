@@ -125,7 +125,7 @@ void Block::write(char *grid_out, int bytes_per_row)
 
 void Block::load_for_write(MPI_Request *request)
 {
-    debug("Receiving %d x %d bytes\n", max_width_byte, max_height_byte);
+    debug("[%d, %d] - Receiving %d x %d bytes\n", world->proc_num, block_num, max_width_byte, max_height_byte);
     MPI_Irecv(write_grid, max_width_byte * max_height_byte, MPI_UNSIGNED_CHAR, block_num, world->proc_num, world->active_comm, request);
 }
 

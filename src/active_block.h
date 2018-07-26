@@ -81,7 +81,7 @@ public:
      */
   void step();
 
-  void store_grid_compressed(char *target);                   // Loads the information of this block into another grid
+  void store_grid_compressed(char *target);                  // Loads the information of this block into another grid
                                                              // The information about 8 Pixels is compressed into 1 byte
   void load_for_write();                                     // Loads the information of this block into the write_grid
                                                              // The information about 8 Pixels is compressed into 1 byte

@@ -542,10 +542,11 @@ void Active_block::glider(int x, int y)
 
 void Active_block::store_grid_compressed(char *target)
 {
+    debug("store_grid_compressed\n");
     memset(target, 0, width_byte * height_byte);
-    for (int y = 0; y < height_byte; y++)
+    for (int y = 0; y < height; y++)
     {
-        for (int x = 0; x < width_byte; x++)
+        for (int x = 0; x < width; x++)
         {
             //information about 8 cells are packed in one byte
             for (int k = 0; k < 8; ++k)
@@ -556,7 +557,7 @@ void Active_block::store_grid_compressed(char *target)
                 }
                 if (grid[y + starting_y][(x + starting_x) * 8 + k] == 1)
                 {
-                    target[(y + starting_y) * max_width_byte + x + starting_x] += pow(2, 7 - k);
+                    target[((y + starting_y) / 8) * max_width_byte + (x + starting_x) / 8] += pow(2, 7 - k);
                 }
             }
         }
@@ -565,11 +566,13 @@ void Active_block::store_grid_compressed(char *target)
 
 void Active_block::load_for_write()
 {
+    debug("Active_block::load_for_write\n");
     store_grid_compressed(write_grid);
 }
 
 void Active_block::send_for_write(int target_num, MPI_Request *request)
 {
+    debug("send_for_write\n");
     store_grid_compressed(send_block_buffers[target_num]);
     debug("Sending %d x %d bytes\n", max_width_byte, max_height_byte);
     MPI_Isend(send_block_buffers[target_num], max_width_byte * max_height_byte, MPI_UNSIGNED_CHAR, target_num, target_num, world->active_comm, request);

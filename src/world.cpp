@@ -41,24 +41,20 @@ World *World::create(int width, int height, int proc_amt, int proc_num)
         cols++;
     }
 
-    
-
     if (proc_num < rows * cols)
     {
-        
+
         return new World(width, height, rows, cols, proc_num);
     }
     else
     {
-        
+
         return new Dummy_world();
     }
 }
 
 World::World(int width, int height, int rows, int cols, int proc_num) : width(width), height(height), rows(rows), cols(cols), proc_num(proc_num)
 {
-    
-
     if (proc_num == 0)
     {
         master = true;
@@ -85,10 +81,11 @@ World::World(int width, int height, int rows, int cols, int proc_num) : width(wi
         }
     }
 
-    
-
     send_requests = new MPI_Request[block_amt];
     recv_requests = new MPI_Request[block_amt];
+
+    send_requests[proc_num] = MPI_REQUEST_NULL;
+    recv_requests[proc_num] = MPI_REQUEST_NULL;
 
     set_active_comm();
 
@@ -125,7 +122,7 @@ void World::tick(int iteration, int total_iterations)
     struct timeval begin;
     gettimeofday(&begin, NULL);
     write(iteration, total_iterations); // Write
-    MPI_Barrier(active_comm);
+    debug("[%d] - write done\n", proc_num);
     if (master)
     {
         printf("Write %03d \t- ", iteration + 1);
@@ -133,7 +130,6 @@ void World::tick(int iteration, int total_iterations)
     }
     gettimeofday(&begin, NULL);
     communicate(); // Communicate
-    MPI_Barrier(active_comm);
     if (master)
     {
         printf("Comm. %03d \t- ", iteration + 1);
@@ -141,7 +137,6 @@ void World::tick(int iteration, int total_iterations)
     }
     gettimeofday(&begin, NULL);
     step(); // Step
-    MPI_Barrier(active_comm);
     if (master)
     {
         printf("Step  %03d \t- ", iteration + 1);
@@ -151,23 +146,35 @@ void World::tick(int iteration, int total_iterations)
 
 void World::write(int iteration, int total_iterations)
 {
-    int writing_block_num = iteration % proc_num;
+    int writing_block_num = iteration % block_amt;
     if (writing_block_num == proc_num) // This thread has to write
     {
+        debug("I write\n");
         if (iteration == 0)
         {
             load_for_write(); // Initial load
         }
+        debug("Now waiting\n");
+        MPI_Waitall(block_amt, recv_requests, MPI_STATUSES_IGNORE); // Wait for all data to be loaded
+        debug("Data is now there\n");
         write_to_file(iteration); // File write
         if (iteration < total_iterations - 1)
         {
             load_for_write(); // Normal load
         }
+        debug("I Write done");
     }
     else // Someone else has to write
     {
+        debug("I send\n");
         // Send the data of the active block to the current writer
+        MPI_Request send_request = send_requests[writing_block_num];
+        if (send_request)
+        {
+            MPI_Wait(&send_request, MPI_STATUS_IGNORE);
+        }
         active_block->send_for_write(writing_block_num, &send_requests[writing_block_num]);
+        debug("Data sent\n");
     }
 }
 
@@ -184,6 +191,7 @@ void World::step()
 
 void World::write_to_file(int step)
 {
+    debug("Trying to write to file\n");
     //pbm in mode P4 reads bitwise, 1 black, 0 white
     char *filename = new char[100];
     sprintf(filename, "./images/frame_%03d.pbm", step);
@@ -203,8 +211,11 @@ void World::write_to_file(int step)
         gridsize_x_byte++;
     }
     //array holding all bit-information packed in bytes
+    debug("out gets size %d x %d\n", gridsize_x_byte, height);
     char out[gridsize_x_byte * height];
     memset(out, 0, gridsize_x_byte * height);
+
+    debug("Write-setup done\n");
 
     // Delegate the actual writing process to the blocks
     for (int y = 0; y < rows; y++)
@@ -212,8 +223,11 @@ void World::write_to_file(int step)
         for (int x = 0; x < cols; x++)
         {
             blocks[y][x]->write(out, gridsize_x_byte);
+            debug("[%d, %d] write done\n", y, x);
         }
     }
+
+    debug("Blocks done writing\n");
 
     // TODO
     //MPI_File_open()
@@ -240,9 +254,17 @@ void World::load_for_write()
 void World::print()
 {
     printf("World:\n{\n");
+    printf("\tProcessor: %d\n", proc_num);
     printf("\tPixels: %d x %d\n", width, height);
     printf("\tBlocks: %d x %d\n", cols, rows);
     printf("\n}\n");
+    for (int y = 0; y < rows; y++)
+    {
+        for (int x = 0; x < cols; x++)
+        {
+            blocks[y][x]->print();
+        }
+    }
 }
 
 void World::fill(unsigned char value)

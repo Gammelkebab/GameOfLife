@@ -19,11 +19,11 @@ Active_block::Active_block(World *world, int block_num) : Block(world, block_num
 
     grid = array2D(width + 2, height + 2);
     next_grid = array2D(width + 2, height + 2);
-    send_block_buffers = (Grid *)malloc((world->block_amt) * sizeof(Grid));
+    send_block_buffers = (char **)malloc((world->block_amt) * sizeof(char *));
 
     for (int i = 0; i < world->block_amt; i++)
     {
-        send_block_buffers[i] = array2D(max_width_byte, max_height_byte);
+        send_block_buffers[i] = (char *)malloc(max_width_byte * max_height_byte);
     }
 
     randomize();
@@ -73,28 +73,6 @@ int Active_block::getNeighbours(unsigned char **grid, int x, int y)
     sum += grid[y][x - 1];
     sum += grid[y][x + 1];
     return sum;
-}
-
-void Active_block::printBlock(bool print_world)
-{
-    if (print_world)
-    {
-        world->print();
-    }
-
-    printf("Block:\n{\n");
-    printf("\tPosition: \t(%d, %d)\n", x, y);
-    printf("\tPixel size: \t%d x %d\n", width, height);
-    printf("\tMaximum height: \t%d\n", max_height);
-    printf("\tPixel start: \t(%d x %d)\n", starting_x, starting_y);
-    printf("\tSpecial Info:\n");
-    printf("\t{\n");
-    printf("\t\tFirst Row: \t%c\n", first_row ? '+' : '0');
-    printf("\t\tLast Row: \t%c\n", last_row ? '+' : '0');
-    printf("\t\tFirst Col: \t%c\n", first_col ? '+' : '0');
-    printf("\t\tLast Col: \t%c\n", last_col ? '+' : '0');
-    printf("\t}\n");
-    printf("\n}\n");
 }
 
 //console output, small grid is preferable
@@ -562,7 +540,7 @@ void Active_block::glider(int x, int y)
     figures::glider(grid, x, y);
 }
 
-void Active_block::store_grid_compressed(Grid target)
+void Active_block::store_grid_compressed(char *target)
 {
     memset(target, 0, width_byte * height_byte);
     for (int y = 0; y < height_byte; y++)
@@ -578,7 +556,7 @@ void Active_block::store_grid_compressed(Grid target)
                 }
                 if (grid[y + starting_y][(x + starting_x) * 8 + k] == 1)
                 {
-                    target[y + starting_y][x + starting_x] += pow(2, 7 - k);
+                    target[(y + starting_y) * max_width_byte + x + starting_x] += pow(2, 7 - k);
                 }
             }
         }
@@ -593,5 +571,6 @@ void Active_block::load_for_write()
 void Active_block::send_for_write(int target_num, MPI_Request *request)
 {
     store_grid_compressed(send_block_buffers[target_num]);
+    debug("Sending %d x %d bytes\n", max_width_byte, max_height_byte);
     MPI_Isend(send_block_buffers[target_num], max_width_byte * max_height_byte, MPI_UNSIGNED_CHAR, target_num, target_num, world->active_comm, request);
 }

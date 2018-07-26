@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
     World *world = World::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num);
 
-    
+    //world->print();
 
     world->fill(0);
     world->glider(25, 25);

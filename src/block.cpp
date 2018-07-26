@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "block.h"
 
 #include "debug.h"
@@ -9,7 +11,6 @@
 // TODO the blocks have to be 8-pixel alligned
 Block::Block(World *world, int block_num)
 {
-    
 
     this->world = world;
     this->block_num = block_num;
@@ -61,8 +62,6 @@ Block::Block(World *world, int block_num)
         max_width += remainder_x;
     }
 
-    max_width_byte = max_width / 8 + max_width % 8 == 0 ? 0 : 1;
-
     // the same for the height
     height = world->height / world->rows;
     height -= height % 8;
@@ -87,8 +86,6 @@ Block::Block(World *world, int block_num)
         max_height += remainder_y;
     }
 
-    max_height_byte = max_height / 8 + max_height % 8 == 0 ? 0 : 1;
-
     // calculate the position of the first (upper left) pixel assigned to this block
     // takes care of additional pixels from remainder of splitting
     starting_x = world->width / world->cols;
@@ -102,9 +99,12 @@ Block::Block(World *world, int block_num)
 
     // Create the write buffer grid, containing compressed information about the block
     // 8 Pixels are compressed into one byte
-    width_byte = width / 8 + remainder_x == 0 ? 0 : 1;
-    height_byte = height / 8 + remainder_y == 0 ? 0 : 1;
-    write_grid = array2D(width_byte, height_byte);
+    width_byte = width / 8 + (remainder_x == 0 ? 0 : 1);
+    height_byte = height / 8 + (remainder_y == 0 ? 0 : 1);
+
+    max_width_byte = max_width / 8 + (max_width % 8 == 0 ? 0 : 1);
+    max_height_byte = max_height / 8 + (max_height % 8 == 0 ? 0 : 1);
+    write_grid = (char *)malloc(max_width_byte * max_height_byte);
 }
 
 void Block::write(char *grid_out, int bytes_per_row)
@@ -113,15 +113,35 @@ void Block::write(char *grid_out, int bytes_per_row)
     {
         for (int x = 0; x < width_byte; x++)
         {
-            grid_out[(x + starting_x / 8) * bytes_per_row + (y + starting_y / 8)] = write_grid[y][x];
+            debug("[%d] - %p is now written with (%d, %d) value at %d\n", block_num, grid_out, y, x, (y + starting_y / 8) * bytes_per_row + (x + starting_x / 8));
+            grid_out[(y + starting_y / 8) * bytes_per_row + (x + starting_x / 8)] = write_grid[y * max_width_byte + x];
             // write the compressed and packed data of the write_grid into the compressed but scattered grid_out
             // Pixels are still compressed into bytes, but the data of one block has holes in between,
             // where parts of the other blocks go
+            debug("done.\n");
         }
     }
 }
 
 void Block::load_for_write(MPI_Request *request)
 {
-    MPI_Irecv(write_grid, width_byte * height_byte, MPI_UNSIGNED_CHAR, block_num, block_num, world->active_comm, request);
+    debug("Receiving %d x %d bytes\n", max_width_byte, max_height_byte);
+    MPI_Irecv(write_grid, max_width_byte * max_height_byte, MPI_UNSIGNED_CHAR, block_num, world->proc_num, world->active_comm, request);
+}
+
+void Block::print()
+{
+    printf("Block:\n{\n");
+    printf("\tPosition: \t(%d, %d)\n", x, y);
+    printf("\tPixel size: \t%d x %d\n", width, height);
+    printf("\tMaximum size: \t(%d x %d)\n", max_width, max_height);
+    printf("\tPixel start: \t(%d x %d)\n", starting_x, starting_y);
+    printf("\tSpecial Info:\n");
+    printf("\t{\n");
+    printf("\t\tFirst Row: \t%c\n", first_row ? '+' : '0');
+    printf("\t\tLast Row: \t%c\n", last_row ? '+' : '0');
+    printf("\t\tFirst Col: \t%c\n", first_col ? '+' : '0');
+    printf("\t\tLast Col: \t%c\n", last_col ? '+' : '0');
+    printf("\t}\n");
+    printf("}\n");
 }

@@ -41,22 +41,24 @@ World *World::create(int width, int height, int proc_amt, int proc_num)
         cols++;
     }
 
-    DEBUG_PRINT("Now creating world %d...\n", proc_num);
+    
 
     if (proc_num < rows * cols)
     {
-        DEBUG_PRINT("%d is a real world\n", proc_num);
+        
         return new World(width, height, rows, cols, proc_num);
     }
     else
     {
-        DEBUG_PRINT("%d is a dummy world\n", proc_num);
+        
         return new Dummy_world();
     }
 }
 
 World::World(int width, int height, int rows, int cols, int proc_num) : width(width), height(height), rows(rows), cols(cols), proc_num(proc_num)
 {
+    
+
     if (proc_num == 0)
     {
         master = true;
@@ -82,6 +84,8 @@ World::World(int width, int height, int rows, int cols, int proc_num) : width(wi
             }
         }
     }
+
+    
 
     send_requests = new MPI_Request[block_amt];
     recv_requests = new MPI_Request[block_amt];

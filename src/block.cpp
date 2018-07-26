@@ -1,4 +1,7 @@
 #include "block.h"
+
+#include "debug.h"
+
 #include "min_max.h"
 #include "array2d.h"
 #include "world.h"
@@ -6,6 +9,8 @@
 // TODO the blocks have to be 8-pixel alligned
 Block::Block(World *world, int block_num)
 {
+    
+
     this->world = world;
     this->block_num = block_num;
 
@@ -110,7 +115,7 @@ void Block::write(char *grid_out, int bytes_per_row)
         {
             grid_out[(x + starting_x / 8) * bytes_per_row + (y + starting_y / 8)] = write_grid[y][x];
             // write the compressed and packed data of the write_grid into the compressed but scattered grid_out
-            // Pixels are still compressed into bytes, but the data of one block has holes in between, 
+            // Pixels are still compressed into bytes, but the data of one block has holes in between,
             // where parts of the other blocks go
         }
     }

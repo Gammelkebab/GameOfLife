@@ -140,7 +140,7 @@ int main()
     }
     */
 
-    Block *block = blocks[0];
+    //Block *block = blocks[0];
 
     //wrap_unwrap_test(block);
 

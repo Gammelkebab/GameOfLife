@@ -1,6 +1,7 @@
 #include "block.h"
 #include "min_max.h"
 #include "array2d.h"
+#include "world.h"
 
 // TODO the blocks have to be 8-pixel alligned
 Block::Block(World *world, int block_num)

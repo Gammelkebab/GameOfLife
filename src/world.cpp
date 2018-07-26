@@ -1,6 +1,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "debug.h"
 
 #include "world.h"
 #include "dummy_world.h"
@@ -38,17 +41,21 @@ World *World::create(int width, int height, int proc_amt, int proc_num)
         cols++;
     }
 
+    DEBUG_PRINT("Now creating world %d...\n", proc_num);
+
     if (proc_num < rows * cols)
     {
-        return new World(width, height, rows, cols, proc_amt, proc_num);
+        DEBUG_PRINT("%d is a real world\n", proc_num);
+        return new World(width, height, rows, cols, proc_num);
     }
     else
     {
+        DEBUG_PRINT("%d is a dummy world\n", proc_num);
         return new Dummy_world();
     }
 }
 
-World::World(int width, int height, int rows, int cols, int proc_amt, int proc_num) : width(width), height(height), rows(rows), cols(cols), proc_num(proc_num)
+World::World(int width, int height, int rows, int cols, int proc_num) : width(width), height(height), rows(rows), cols(cols), proc_num(proc_num)
 {
     if (proc_num == 0)
     {
@@ -80,6 +87,8 @@ World::World(int width, int height, int rows, int cols, int proc_amt, int proc_n
     recv_requests = new MPI_Request[block_amt];
 
     set_active_comm();
+
+    first_write = false;
 }
 
 void World::set_active_comm()
@@ -119,7 +128,7 @@ void World::tick(int iteration, int total_iterations)
         print_time_since(begin);
     }
     gettimeofday(&begin, NULL);
-    communicate(iteration); // Communicate
+    communicate(); // Communicate
     MPI_Barrier(active_comm);
     if (master)
     {
@@ -127,7 +136,7 @@ void World::tick(int iteration, int total_iterations)
         print_time_since(begin);
     }
     gettimeofday(&begin, NULL);
-    step(iteration); // Step
+    step(); // Step
     MPI_Barrier(active_comm);
     if (master)
     {
@@ -141,7 +150,8 @@ void World::write(int iteration, int total_iterations)
     int writing_block_num = iteration % proc_num;
     if (writing_block_num == proc_num) // This thread has to write
     {
-        if (iteration == 0) {
+        if (iteration == 0)
+        {
             load_for_write(); // Initial load
         }
         write_to_file(iteration); // File write
@@ -155,6 +165,17 @@ void World::write(int iteration, int total_iterations)
         // Send the data of the active block to the current writer
         active_block->send_for_write(writing_block_num, &send_requests[writing_block_num]);
     }
+}
+
+// Communicate borders from and to the active block
+void World::communicate()
+{
+    active_block->communicate();
+}
+
+void World::step()
+{
+    active_block->step();
 }
 
 void World::write_to_file(int step)
@@ -197,15 +218,19 @@ void World::write_to_file(int step)
     fclose(outfile);
 }
 
-// Communicate borders from and to the active block
-void World::communicate(int iteration)
+void World::load_for_write()
 {
-    active_block->communicate(iteration);
-}
-
-void World::step(int iteration)
-{
-    active_block->step();
+    for (int y = 0; y < rows; y++)
+    {
+        for (int x = 0; x < cols; x++)
+        {
+            int block_num = y * cols + x;
+            if (block_num != proc_num)
+            {
+                blocks[y][x]->load_for_write(&recv_requests[block_num]);
+            }
+        }
+    }
 }
 
 void World::print()
@@ -221,17 +246,7 @@ void World::fill(unsigned char value)
     active_block->fill(value);
 }
 
-void World::load_for_write()
+void World::glider(int x, int y)
 {
-    for (int y = 0; y < rows; y++)
-    {
-        for (int x = 0; x < cols; x++)
-        {
-            int block_num = y * cols + x;
-            if (block_num != proc_num)
-            {
-                blocks[y][x]->load_for_write(&recv_requests[block_num]);
-            }
-        }
-    }
+    active_block->glider(x, y);
 }

@@ -1,11 +1,12 @@
 #ifndef active_block_h
 #define active_block_h
 
-#include "world.h"
 #include "block.h"
 #include "border_direction.h"
 
 #include <mpi.h>
+
+class World;
 
 class Active_block : public Block
 {
@@ -49,15 +50,15 @@ public:
   int south_east();
 
   /* Wrap functions */
-  void Active_block::wrap_row(unsigned char *buffer, int row);
-  void Active_block::wrap_col(unsigned char *buffer, int col);
-  void Active_block::wrap_corner(unsigned char *buffer, int x, int y);
+  void wrap_row(unsigned char *buffer, int row);
+  void wrap_col(unsigned char *buffer, int col);
+  void wrap_corner(unsigned char *buffer, int x, int y);
   void wrap(unsigned char *buffer, Border_direction dir);
 
   /* Unwrap functions */
-  void Active_block::unwrap_row(unsigned char *buffer, int row);
-  void Active_block::unwrap_col(unsigned char *buffer, int col);
-  void Active_block::unwrap_corner(unsigned char *buffer, int x, int y);
+  void unwrap_row(unsigned char *buffer, int row);
+  void unwrap_col(unsigned char *buffer, int col);
+  void unwrap_corner(unsigned char *buffer, int x, int y);
   void unwrap(unsigned char *buffer, Border_direction dir);
 
   /* element count */
@@ -72,8 +73,7 @@ public:
      */
   // REMINDER! Use tags for directions of communication, so barriers can be avoided
   void communicate_borders();
-  void communicate_for_write(int round);
-  void communicate(int round);
+  void communicate();
 
   /**
      * next evolution

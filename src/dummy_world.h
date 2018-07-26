@@ -9,20 +9,19 @@
  */
 class Dummy_world : public World
 {
-  public:
-    Dummy_world();
-
-  public:
-    void step(int iteration) {}
-    void write(int step) {}
-
-  public:
-    void print() {}
-    void fill(unsigned char value) {}
-    void glider(int x, int y) {}
-
-  private:
-    void set_active_comm() {}
+public:
+  Dummy_world() : World() {}
+  void step() {}
+  void print() {}
+  void fill(unsigned char value)
+  {
+    (void)value;
+  }
+  void glider(int x, int y)
+  {
+    (void)x;
+    (void)y;
+  }
 };
 
 #endif

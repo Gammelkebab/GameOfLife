@@ -2,13 +2,12 @@
 #include <sys/time.h>
 #include <stdio.h>
 
-// TODO funktioniert das? und wieso nimmt er das falsche?
-//#define SMALL //uses small resolution, less iterations for testing
+#include "debug.h"
 
 #include "world.h"
 #include "figures.h"
 
-#define MEDIUM //uses small resolution, less iterations for testing
+#define MEDIUM
 
 #ifdef SMALL
 #define GRIDSIZE_X 202
@@ -54,6 +53,8 @@ int main(int argc, char **argv)
     printf("%d \t=> %s\n", proc_num, processor_name);
 
     World *world = World::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num);
+
+    DEBUG_PRINT("World %d created\n", proc_num);
 
     world->fill(0);
     world->glider(25, 25);

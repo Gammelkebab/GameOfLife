@@ -9,7 +9,7 @@ the figures are ignoring the size of the grid, offset has to be checked manually
 **/
 
 //figure with a 2-step period, stationary
-void blinker(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
+inline void blinker(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
 {
     grid[3 + offset_Y][4 + offset_X] = 1;
     grid[4 + offset_Y][4 + offset_X] = 1;
@@ -17,7 +17,7 @@ void blinker(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
 }
 
 //figure with a 8-step period, moves
-void glider(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
+inline void glider(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
 {
     grid[4 + offset_Y][4 + offset_X] = 1;
     grid[4 + offset_Y][5 + offset_X] = 1;
@@ -27,7 +27,7 @@ void glider(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
 }
 
 //figure
-void pentadecathlon(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
+inline void pentadecathlon(unsigned char **grid, int offset_X = 0, int offset_Y = 0)
 {
     for (int x = 0; x < 8; ++x)
     {

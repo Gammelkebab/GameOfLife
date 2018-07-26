@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <stdio.h>
 
-void print_time_since(struct timeval begin)
+inline void print_time_since(struct timeval begin)
 {
     struct timeval end;
 

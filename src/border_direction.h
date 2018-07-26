@@ -13,7 +13,7 @@ typedef enum Border_direction
     SOUTH_EAST
 } Border_direction;
 
-void print_border_direction(Border_direction dir)
+inline void print_border_direction(Border_direction dir)
 {
     switch (dir)
     {
@@ -46,7 +46,7 @@ void print_border_direction(Border_direction dir)
     }
 }
 
-Border_direction opposite_direction(Border_direction dir)
+inline Border_direction opposite_direction(Border_direction dir)
 {
     switch (dir)
     {

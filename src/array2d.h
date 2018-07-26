@@ -2,7 +2,7 @@
 #define array2d_h
 
 //allocate a 2D array
-unsigned char **array2D(int width, int height)
+inline unsigned char **array2D(int width, int height)
 {
     unsigned char **array = new unsigned char *[height]();
     for (int i = 0; i < height; ++i)

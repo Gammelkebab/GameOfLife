@@ -1,6 +1,9 @@
 #include "active_block.h"
 #include "timing.h"
 #include "array2d.h"
+#include "world.h"
+#include "figures.h"
+#include "min_max.h"
 
 #include <math.h>
 #include <time.h>
@@ -11,7 +14,7 @@
 Active_block::Active_block(World *world, int block_num) : Block(world, block_num)
 {
     next_grid = array2D(width + 2, height + 2);
-    send_block_buffers = malloc((world->block_amt - 1) * sizeof(Grid));
+    send_block_buffers = (Grid *)malloc((world->block_amt - 1) * sizeof(Grid));
     for (int i = 0; i < world->block_amt; i++)
     {
         send_block_buffers[i] = array2D(max_width_byte, max_height_byte);
@@ -160,7 +163,7 @@ void print_unsigned_char_array(unsigned char *arr, int size)
 
 int Active_block::position_to_block_number(int x, int y)
 {
-    return y * world->cols + x;
+    return (y * world->cols + x);
 }
 
 int Active_block::north()
@@ -174,6 +177,7 @@ int Active_block::north()
     {
         return position_to_block_number(x, y - 1);
     }
+    
 }
 
 int Active_block::south()
@@ -187,6 +191,7 @@ int Active_block::south()
     {
         return position_to_block_number(x, y + 1);
     }
+    
 }
 
 int Active_block::west()
@@ -200,6 +205,7 @@ int Active_block::west()
     {
         return position_to_block_number(x - 1, y);
     }
+    
 }
 
 int Active_block::east()
@@ -213,6 +219,7 @@ int Active_block::east()
     {
         return position_to_block_number(x + 1, y);
     }
+    
 }
 
 int Active_block::north_west()
@@ -505,7 +512,7 @@ void Active_block::communicate_borders()
     }
 }
 
-void Active_block::communicate(int round)
+void Active_block::communicate()
 {
     communicate_borders();
 }

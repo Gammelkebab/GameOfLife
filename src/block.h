@@ -1,10 +1,11 @@
 #ifndef block_h
 #define block_h
 
-#include "world.h"
 #include <mpi.h>
 
 typedef unsigned char **Grid;
+
+class World;
 
 class Block
 {

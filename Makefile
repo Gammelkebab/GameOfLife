@@ -1,10 +1,13 @@
 CC=mpicxx
 CFLAGS = -g -Wall -Wextra -O3
 
-SRC = $(wildcard src/*.cpp)
-OBJ = $(SRC:.cpp=.o)
-OBJ_MAIN = $(filter-out src/main.cpp, $(OBJ))
-OBJ_TEST = $(filter-out src/test.cpp, $(OBJ))
+SRC_DIR = src
+OBJ_DIR = obj
+
+SRC = $(wildcard $(SRC_DIR)/*.cpp)
+OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC))
+OBJ_MAIN = $(filter-out obj/test.o, $(OBJ))
+OBJ_TEST = $(filter-out obj/main.o, $(OBJ))
 BIN = main test
 
 #first target
@@ -21,8 +24,8 @@ test : test_c
 	./test
 
 #each object depends on the c-file with the same name
-%.o : %.cpp
-	$(CC) $(CFLAGS) -c $<
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean :
 	rm -rf $(BIN) $(OBJ)

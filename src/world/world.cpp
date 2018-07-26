@@ -11,12 +11,17 @@
 #include "active_block.h"
 #include "timing.h"
 
-World *World::create(int width, int height, int proc_amt, int proc_num)
+World *World::create(int width, int height, int proc_amt, int proc_num, double worker_share)
 {
+    // Initial worker amount is set to the approximate worker share percentage of all processes
+    // 0 < worker amount <= proc_amt
+    // Neither none nor all threads are workers
+    int worker_amt_tmp = btw(proc_amt * worker_share, 1, proc_amt - 1);
+
     // Distributes rows and columns proportionally to the overall pixel aspect ratio
-    float rows_tmp = sqrt(proc_amt * ((float)height / width));
+    float rows_tmp = sqrt(worker_amt_tmp * ((float)height / width));
     int rows = floor(rows_tmp);
-    int cols = floor(proc_amt / rows_tmp);
+    int cols = floor(worker_amt_tmp / rows_tmp);
 
     // Try to create one more row or column (Might be possible due to flooring)
     int r1 = (rows + 1) * cols;
@@ -41,10 +46,13 @@ World *World::create(int width, int height, int proc_amt, int proc_num)
         cols++;
     }
 
+    int worker_amt = rows * cols;
+    int writer_amt = proc_num - worker_amt;
+
     if (proc_num < rows * cols)
     {
 
-        return new World(width, height, rows, cols, proc_num);
+        return new World(width, height, rows, cols, proc_num, worker_amt, writer_amt);
     }
     else
     {
@@ -53,7 +61,7 @@ World *World::create(int width, int height, int proc_amt, int proc_num)
     }
 }
 
-World::World(int width, int height, int rows, int cols, int proc_num) : width(width), height(height), rows(rows), cols(cols), proc_num(proc_num)
+World::World(int width, int height, int rows, int cols, int proc_num, int worker_amt, int writer_amt) : width(width), height(height), rows(rows), cols(cols), proc_num(proc_num), worker_amt(worker_amt), writer_amt(writer_amt)
 {
     if (proc_num == 0)
     {

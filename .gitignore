@@ -1,7 +1,6 @@
-main
-test
-*.o
 .vscode/
+bin/*
+obj/*
 images/*
 !images/.gitkeep
 log*

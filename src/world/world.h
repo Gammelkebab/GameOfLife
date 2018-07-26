@@ -15,6 +15,7 @@ public:
 
   int block_amt;
   int proc_num;
+  int worker_amt, writer_amt;
 
   Active_block *active_block;
   Block ***blocks;
@@ -30,13 +31,13 @@ private:
   bool first_write;
 
 private:
-  World(int width, int height, int rows, int cols, int proc_num);
+  World(int width, int height, int rows, int cols, int proc_num, int worker_amt, int writer_amt);
 
 protected:
   World() {}
 
 public:
-  static World *create(int width, int height, int proc_amt, int proc_num);
+  static World *create(int width, int height, int proc_amt, int proc_num, double worker_share);
 
 private:
   void set_active_comm();

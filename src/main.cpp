@@ -2,12 +2,13 @@
 #include <sys/time.h>
 #include <stdio.h>
 
-#include "debug.h"
+#include "debug/debug.h"
 
-#include "world.h"
-#include "figures.h"
+#include "actors/actor.h"
+
 
 #define MEDIUM
+#define WORKER_SHARE 0.7
 
 #ifdef SMALL
 #define GRIDSIZE_X 202
@@ -52,12 +53,7 @@ int main(int argc, char **argv)
     MPI_Get_processor_name(processor_name, &processor_name_length);
     printf("%d \t=> %s\n", proc_num, processor_name);
 
-    World *world = World::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num);
-
-    //world->print();
-
-    world->fill(0);
-    world->glider(750, 400);
+    Actor *actor = Actor::create();
 
     for (int i = 0; i < FRAMES; ++i)
     {
@@ -65,7 +61,7 @@ int main(int argc, char **argv)
         {
             printf("round: %d\n", i + 1);
         }
-        world->tick(i, FRAMES);
+        actor->tick(i);
     }
 
     gettimeofday(&end, NULL);

@@ -13,6 +13,6 @@ module load intel
 
 make full
 
-mpirun ./main > log3.txt
+mpirun ./main
 
 ./create_video.sh

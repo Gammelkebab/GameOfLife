@@ -3,16 +3,16 @@
 #PBS -j oe
 #PBS -m ae
 #PBS -l nodes=1:ppn=1
-#PBS -l walltime=0:00:10
+#PBS -l walltime=0:00:30
 #PBS -l mem=1gb
 #PBS -W x=PARTITION:tane
 
 cd $BIGWORK/GameOfLife
 
-module load foss
+module load intel
 
 make full
 
-mpirun -np 1 ./main > log1.txt
+mpirun ./main
 
 ./create_video.sh

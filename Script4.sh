@@ -2,10 +2,10 @@
 #PBS -N MPI
 #PBS -j oe
 #PBS -m ae
-#PBS -l nodes=4:ppn=12
+#PBS -l nodes=4:ppn=16
 #PBS -l walltime=0:00:30
 #PBS -l mem=1gb
-#PBS -W x=PARTITION:tane
+#PBS -W x=PARTITION:lena
 
 cd $BIGWORK/GameOfLife
 
@@ -13,7 +13,6 @@ module load intel
 
 make full
 
-# mpirun -np 16 --hostfile $PBS_NODEFILE -display-allocation  ./main > log3.txt
-mpirun ./main > log3.txt
+mpirun ./main
 
 ./create_video.sh

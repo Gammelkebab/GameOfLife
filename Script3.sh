@@ -13,6 +13,8 @@ module load intel
 
 make full
 
+lfs setstripe –c 4 .
+
 mpirun ./main
 
 ./create_video.sh

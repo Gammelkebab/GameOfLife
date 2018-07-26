@@ -13,7 +13,7 @@ module load intel
 
 make full
 
-lfs setstripe –c 4 .
+lfs setstripe –c 4 images
 
 mpirun ./main
 

@@ -372,13 +372,11 @@ void Block::write(int step_number)
     MPI_File fh;
     MPI_File_open(active_comm, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
 
-    /*
     if (x == 0 && y == 0)
     {
         printf("File open: ");
         print_time_since(begin);
     }
-    */
 
     gettimeofday(&begin, NULL);
 
@@ -393,37 +391,31 @@ void Block::write(int step_number)
         MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
     }
 
-    /*
     if (x == 0 && y == 0)
     {
         printf("Before write: ");
         print_time_since(begin);
     }
-    */
 
     gettimeofday(&begin, NULL);
     write_grid(fh, header_size);
 
-    /*
     if (x == 0 && y == 0)
     {
         printf("Write_grid: ");
         print_time_since(begin);
     }
-    */
 
     gettimeofday(&begin, NULL);
 
     MPI_Barrier(active_comm); // TODO remove barrier
     MPI_File_close(&fh);
 
-    /*
     if (x == 0 && y == 0)
     {
         printf("After write: ");
         print_time_since(begin);
     }
-    */
 }
 
 /* Functions calculating the surrounding block numbers */

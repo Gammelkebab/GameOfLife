@@ -324,10 +324,21 @@ void print_unsigned_char_array(unsigned char *arr, int size)
 
 void Block::write_grid(MPI_File fh, int header_size)
 {
+    struct timeval begin;
+    gettimeofday(&begin, NULL);
+
     // Buffer stores one bit for every char -> 1/8 of size, but ceiled
     int buffer_size = ceil(width / 8.0);
     unsigned char buffer[buffer_size];
     buffer[buffer_size - 1] = 0; // Clear last otherwise unwritten pixels in the buffer
+
+    if (x == 0 && y == 0)
+    {
+        printf("Write Grid - Setup: ");
+        print_time_since(begin);
+    }
+    gettimeofday(&begin, NULL);
+
     for (int y = 1; y <= height; y++)
     {
         buffer_row(buffer, y);
@@ -352,6 +363,12 @@ void Block::write_grid(MPI_File fh, int header_size)
             MPI_File_write_at_all_end(fh, buffer, MPI_STATUS_IGNORE);
         }*/
         MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+    }
+
+    if (x == 0 && y == 0)
+    {
+        printf("Write Grid - Main: ");
+        print_time_since(begin);
     }
 
     for (int y = height + 1; y <= max_height; y++)

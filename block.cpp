@@ -362,7 +362,7 @@ void Block::write_grid(MPI_File fh, int header_size)
         {
             MPI_File_write_at_all_end(fh, buffer, MPI_STATUS_IGNORE);
         }*/
-        MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+        MPI_File_write_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
 
     if (x == 0 && y == 0)
@@ -370,12 +370,8 @@ void Block::write_grid(MPI_File fh, int header_size)
         printf("Write Grid - Main: ");
         print_time_since(begin);
     }
-
-    for (int y = height + 1; y <= max_height; y++)
-    {
-        // Empty write so collective write does not block for remaining pixels
-        MPI_File_write_at_all(fh, 0, buffer, 0, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
-    }
+    
+    MPI_Barrier(active_comm);
 }
 
 void Block::write(int step_number)

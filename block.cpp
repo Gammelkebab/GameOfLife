@@ -325,33 +325,40 @@ void print_unsigned_char_array(unsigned char *arr, int size)
 void Block::write_grid(MPI_File fh, int header_size)
 {
     // Buffer stores one bit for every char -> 1/8 of size, but ceiled
-    int buffer_size = ceil(width / 8.0); // TODO korrekt?
+    int buffer_size = ceil(width / 8.0);
     unsigned char buffer[buffer_size];
-    buffer[buffer_size - 1] = 0; // TODO remove?
-                                 // Clear last otherwise unwritten pixels in the buffer
+    buffer[buffer_size - 1] = 0; // Clear last otherwise unwritten pixels in the buffer
     for (int y = 1; y <= height; y++)
     {
         buffer_row(buffer, y);
         // The position of the first pixel of the current row
         // y - 1 because of the border
-        int offset = header_size + (starting_x / 8 + (starting_y + y - 1) * ceil(world->width / 8.0));
 
-        // TODO
-        MPI_File_write_at_all_begin(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR);
-        //MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
-        //MPI_File_write_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
 
+        int row_width_byte = ceil(world->width / 8.0);
+        //printf("rwb: %d\n", row_width_byte);
+        int current_row_global = (starting_y + y - 1);
+        //printf("crg: %d\n", current_row_global);
+        int offset = header_size + ((current_row_global * row_width_byte) + starting_x / 8);
+
+        //printf("starting_x/y: %d, %d\n", starting_x, starting_y);
+        //printf("offset: %d\n", offset);
+        //printf("Buffer: %d\n", buffer_size);
+        //print_unsigned_char_array(buffer, buffer_size);
+
+        /*MPI_File_write_at_all_begin(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR);
         if (y == height)
         {
             MPI_File_write_at_all_end(fh, buffer, MPI_STATUS_IGNORE);
-        }
+        }*/
+        MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
 
-    /*for (int y = height + 1; y <= max_height; y++)
+    for (int y = height + 1; y <= max_height; y++)
     {
         // Empty write so collective write does not block for remaining pixels
         MPI_File_write_at_all(fh, 0, buffer, 0, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
-    }*/
+    }
 }
 
 void Block::write(int step_number)
@@ -365,11 +372,13 @@ void Block::write(int step_number)
     MPI_File fh;
     MPI_File_open(active_comm, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
 
+    /*
     if (x == 0 && y == 0)
     {
         printf("File open: ");
         print_time_since(begin);
     }
+    */
 
     gettimeofday(&begin, NULL);
 
@@ -384,31 +393,37 @@ void Block::write(int step_number)
         MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
     }
 
+    /*
     if (x == 0 && y == 0)
     {
         printf("Before write: ");
         print_time_since(begin);
     }
+    */
 
     gettimeofday(&begin, NULL);
     write_grid(fh, header_size);
+
+    /*
     if (x == 0 && y == 0)
     {
         printf("Write_grid: ");
         print_time_since(begin);
     }
-    
+    */
+
     gettimeofday(&begin, NULL);
 
     MPI_Barrier(active_comm); // TODO remove barrier
     MPI_File_close(&fh);
-    
 
+    /*
     if (x == 0 && y == 0)
     {
         printf("After write: ");
         print_time_since(begin);
     }
+    */
 }
 
 /* Functions calculating the surrounding block numbers */
@@ -823,25 +838,31 @@ void Block::step_mpi(int step_number)
     gettimeofday(&begin, NULL);
     write(step_number);
     MPI_Barrier(active_comm);
+    /*
     if (x == 0 && y == 0)
     {
         printf("Write %03d \t- ", step_number + 1);
         print_time_since(begin);
     }
+    */
     gettimeofday(&begin, NULL);
     communicate();
     MPI_Barrier(active_comm);
+    /*
     if (x == 0 && y == 0)
     {
         printf("Comm. %03d \t- ", step_number + 1);
         print_time_since(begin);
     }
+    */
     gettimeofday(&begin, NULL);
     step();
     MPI_Barrier(active_comm);
+    /*
     if (x == 0 && y == 0)
     {
         printf("Step  %03d \t- ", step_number + 1);
         print_time_since(begin);
     }
+    */
 }

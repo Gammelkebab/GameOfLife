@@ -14,7 +14,7 @@ test_c : $(OBJ_TEST)
 	$(CC) $(CFLAGS) -o test $^
 
 run : main
-	mpirun -np 4 ./main && ./create_video.sh
+	mpirun ./main && ./create_video.sh
 
 test : test_c
 	./test

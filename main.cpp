@@ -75,12 +75,10 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < FRAMES; ++i)
     {
-        /*
         if (block_num == 0)
         {
             printf("round: %d\n", i + 1);
         }
-        */
         block->step_mpi(i);
     }
 

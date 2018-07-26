@@ -838,31 +838,25 @@ void Block::step_mpi(int step_number)
     gettimeofday(&begin, NULL);
     write(step_number);
     MPI_Barrier(active_comm);
-    /*
     if (x == 0 && y == 0)
     {
         printf("Write %03d \t- ", step_number + 1);
         print_time_since(begin);
     }
-    */
     gettimeofday(&begin, NULL);
     communicate();
     MPI_Barrier(active_comm);
-    /*
     if (x == 0 && y == 0)
     {
         printf("Comm. %03d \t- ", step_number + 1);
         print_time_since(begin);
     }
-    */
     gettimeofday(&begin, NULL);
     step();
     MPI_Barrier(active_comm);
-    /*
     if (x == 0 && y == 0)
     {
         printf("Step  %03d \t- ", step_number + 1);
         print_time_since(begin);
     }
-    */
 }

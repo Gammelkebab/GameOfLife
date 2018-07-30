@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <math.h>
+#include <cstring>
 
 #define SMAL //uses small resolution, less iterations for testing
 
@@ -142,7 +143,8 @@ void writeFrame(unsigned char** grid, int i) {
         gridsize_x_byte++;
     }
     //array holding all bit-information packed in bytes
-    char out[gridsize_x_byte*GRIDSIZE_Y] = {0};
+    char out[gridsize_x_byte*GRIDSIZE_Y];
+    memset(out, 0, gridsize_x_byte * GRIDSIZE_Y * sizeof(char));
 
     for (int y=0; y<GRIDSIZE_Y; ++y) {
         for(int x=0; x<gridsize_x_byte; ++x) {

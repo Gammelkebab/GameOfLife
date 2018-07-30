@@ -4,6 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <math.h>
+#include <cstring>
 
 #define SMAL //uses small resolution, less iterations for testing
 

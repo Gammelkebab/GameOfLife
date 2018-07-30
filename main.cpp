@@ -8,7 +8,7 @@
 #include "./block.h"
 #include "./figures.h"
 
-#define SMALL //uses small resolution, less iterations for testing
+#define LARGE //uses small resolution, less iterations for testing
 
 #ifdef SMALL
 #define GRIDSIZE_X 202
@@ -69,9 +69,6 @@ int main(int argc, char **argv)
     MPI_Comm_create(MPI_COMM_WORLD, active_group, &active_comm);
 
     block->set_active_comm(active_comm);
-
-    block->fill(0);
-    glider(block->grid, 75, 75);
 
     for (int i = 0; i < FRAMES; ++i)
     {

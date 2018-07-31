@@ -9,7 +9,7 @@
 
 module load intel
 
-cd GameOfLife/Game_Of_Life_Benchmark
+cd $BIGWORK/GameOfLife/Game_Of_Life_Benchmark
 
 make
 

@@ -1,0 +1,8 @@
+main
+test
+*.o
+.vscode/
+images/*
+!images/.gitkeep
+log*
+output.gif

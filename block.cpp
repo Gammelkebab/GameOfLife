@@ -339,16 +339,16 @@ void Block::write_grid(MPI_File fh, int header_size)
     }
     gettimeofday(&begin, NULL);
 
-    for (int y = 1; y <= height; y++)
+    for (int row = 1; row <= height; row++)
     {
-        buffer_row(buffer, y);
+        buffer_row(buffer, row);
         // The position of the first pixel of the current row
         // y - 1 because of the border
 
 
         int row_width_byte = ceil(world->width / 8.0);
         //printf("rwb: %d\n", row_width_byte);
-        int current_row_global = (starting_y + y - 1);
+        int current_row_global = (starting_y + row - 1);
         //printf("crg: %d\n", current_row_global);
         int offset = header_size + ((current_row_global * row_width_byte) + starting_x / 8);
 

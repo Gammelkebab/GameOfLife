@@ -202,6 +202,13 @@ Block::Block(int block_num, int block_amt, int gridsize_x, int gridsize_y)
     grid = array2D(width + 2, height + 2);
     next_grid = array2D(width + 2, height + 2);
 
+    for (int i = 0; i < FRAMES; i++)
+    {
+        write_buffers[i] = malloc(ceil(width / 8) * height * sizeof(char));
+        write_requests[i] = MPI_REQUEST_NULL;
+        write_requests_header[i] = MPI_REQUEST_NULL;
+    }
+
     randomize();
 }
 
@@ -327,11 +334,6 @@ void Block::write_grid(MPI_File fh, int header_size)
     struct timeval begin;
     gettimeofday(&begin, NULL);
 
-    // Buffer stores one bit for every char -> 1/8 of size, but ceiled
-    int buffer_size = ceil(width / 8.0);
-    unsigned char buffer[buffer_size];
-    buffer[buffer_size - 1] = 0; // Clear last otherwise unwritten pixels in the buffer
-
     if (x == 0 && y == 0)
     {
         printf("Write Grid - Setup: ");
@@ -341,40 +343,22 @@ void Block::write_grid(MPI_File fh, int header_size)
 
     for (int row = 1; row <= height; row++)
     {
-        buffer_row(buffer, row);
-        // The position of the first pixel of the current row
-        // y - 1 because of the border
+        int bytes_per_row = ceil(width / 8);
+        char *buffer = write_buffers[y * world->cols + x];
+        buffer[row * bytes_per_row - 1] = 0; // Clear last otherwise unwritten pixels in the buffer
+        buffer_row(&buffer[row * bytes_per_row], row);
 
-
-        int row_width_byte = ceil(world->width / 8.0);
-        //printf("rwb: %d\n", row_width_byte);
+        int bytes_per_row_global = ceil(world->width / 8.0);
         int current_row_global = (starting_y + row - 1);
-        //printf("crg: %d\n", current_row_global);
-        int offset = header_size + ((current_row_global * row_width_byte) + starting_x / 8);
+        int offset = header_size + ((current_row_global * bytes_per_row_global) + starting_x / 8);
 
-        //printf("starting_x/y: %d, %d\n", starting_x, starting_y);
-        //printf("offset: %d\n", offset);
-        //printf("Buffer: %d\n", buffer_size);
-        //print_unsigned_char_array(buffer, buffer_size);
-
-        /*MPI_File_write_at_all_begin(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR);
-        if (y == height)
-        {
-            MPI_File_write_at_all_end(fh, buffer, MPI_STATUS_IGNORE);
-        }*/
-        MPI_File_write_at_all(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+        MPI_File_iwrite_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
 
     if (x == 0 && y == 0)
     {
         printf("Write Grid - Main: ");
         print_time_since(begin);
-    }
-
-    for (int y = height + 1; y <= max_height; y++)
-    {
-        // Empty write so collective write does not block for remaining pixels
-        MPI_File_write_at_all(fh, 0, buffer, 0, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
     }
 }
 

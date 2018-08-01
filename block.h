@@ -46,6 +46,10 @@ class Block
 			   // => the 'real' pxiels go from (1, 1) up to (width, height)
 	Grid next_grid;
 
+	Grid write_buffers[FRAMES];
+	MPI_Request write_requests[FRAMES];
+	MPI_Request write_requests_header[FRAMES];
+
   public:
 	MPI_Comm active_comm;
 

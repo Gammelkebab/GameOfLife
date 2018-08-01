@@ -8,12 +8,12 @@
 #include "./block.h"
 #include "./figures.h"
 
-#define LARGE //uses small resolution, less iterations for testing
+#define SMALL //uses small resolution, less iterations for testing
 
 #ifdef SMALL
 #define GRIDSIZE_X 202
 #define GRIDSIZE_Y 200
-#define FRAMES 100
+#define FRAMES 10
 #else
 #ifdef MEDIUM
 #define GRIDSIZE_X 1600
@@ -25,6 +25,8 @@
 #define FRAMES 900
 #endif
 #endif
+
+int total_rounds = FRAMES;
 
 using namespace std;
 
@@ -69,12 +71,14 @@ int main(int argc, char **argv)
     MPI_Comm_create(MPI_COMM_WORLD, active_group, &active_comm);
 
     block->set_active_comm(active_comm);
+    block->fill(0);
+    glider(block->grid, 40, 40);
 
     for (int i = 0; i < FRAMES; ++i)
     {
         if (block_num == 0)
         {
-            printf("round: %d\n", i + 1);
+            printf("round: %d\n", i);
         }
         block->step_mpi(i);
     }

@@ -22,44 +22,45 @@ unsigned char **array2D(int width, int height);
 
 class Block
 {
-  private:
+private:
 	typedef unsigned char **Grid;
 
-  private:
+private:
 	int getNeighbours(unsigned char **grid, int x, int y);
 	int isAlive(int neighbours, unsigned char cell);
 
-  public:
+public:
 	World *world;
 
-  public:
-	int x, y;									   // x and y position of the block (in blocks not pixels)
-	int width, height;							   // height and width of the block (without borders)
-	int max_height;								   // The maximum height between all blocks (used for collective write)
-	int starting_x, starting_y;					   // upper left corner x and y position (pixels)
+public:
+	int x, y;																			 // x and y position of the block (in blocks not pixels)
+	int width, height;														 // height and width of the block (without borders)
+	int max_height;																 // The maximum height between all blocks (used for collective write)
+	int starting_x, starting_y;										 // upper left corner x and y position (pixels)
 	bool first_row, first_col, last_row, last_col; // booleans indicating specific block positions
 
-  public:
+public:
 	Grid grid; // The actual data of all the assigned pixels
-			   // REMEMBER! this grid has the borders stored as well
-			   // => it has size (width + 2, height + 2)
-			   // => the 'real' pxiels go from (1, 1) up to (width, height)
+						 // REMEMBER! this grid has the borders stored as well
+						 // => it has size (width + 2, height + 2)
+						 // => the 'real' pxiels go from (1, 1) up to (width, height)
 	Grid next_grid;
 
-	Grid write_buffers[FRAMES];
-	MPI_Request write_requests[FRAMES];
-	MPI_Request write_requests_header[FRAMES];
+	unsigned char **write_buffers;
+	MPI_Request *write_requests;
+	MPI_Request *write_requests_header;
+	MPI_File *file_handles;
 
-  public:
+public:
 	MPI_Comm active_comm;
 
-  public:
+public:
 	Block(int block_num, int block_amt, int gridsize_x, int gridsize_y);
 
 	// TODO
 	void deleteBlock();
 
-  public:
+public:
 	void printBlock(bool print_world = true);
 	//console output, small grid is preferable
 	void printGrid();
@@ -68,7 +69,7 @@ class Block
 	void randomize();
 
 	void buffer_row(unsigned char *buffer, int row);
-	void write_grid(MPI_File fh, int header_size);
+	void write_grid(MPI_File fh, int header_size, int round);
 	void write(int step_number);
 
 	/* Functions calculating the surrounding block numbers */

@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdio.h>
 
+extern int total_rounds;
+
 int min(int a, int b)
 {
     return a <= b ? a : b;
@@ -202,10 +204,17 @@ Block::Block(int block_num, int block_amt, int gridsize_x, int gridsize_y)
     grid = array2D(width + 2, height + 2);
     next_grid = array2D(width + 2, height + 2);
 
-    for (int i = 0; i < FRAMES; i++)
+    write_buffers = (unsigned char **)malloc(total_rounds * sizeof(unsigned char *));
+    write_requests = (MPI_Request *)malloc(total_rounds * height * sizeof(MPI_Request));
+    write_requests_header = (MPI_Request *)malloc(total_rounds * sizeof(MPI_Request));
+    file_handles = (MPI_File *)malloc(total_rounds * sizeof(MPI_File));
+    for (int i = 0; i < total_rounds; i++)
     {
-        write_buffers[i] = malloc(ceil(width / 8) * height * sizeof(char));
-        write_requests[i] = MPI_REQUEST_NULL;
+        write_buffers[i] = (unsigned char *)malloc(ceil(width / 8.0) * height * sizeof(char));
+        for (int j = 0; j < height; j++)
+        {
+            write_requests[i * height + j] = MPI_REQUEST_NULL;
+        }
         write_requests_header[i] = MPI_REQUEST_NULL;
     }
 
@@ -329,35 +338,30 @@ void print_unsigned_char_array(unsigned char *arr, int size)
     printf("]\n");
 }
 
-void Block::write_grid(MPI_File fh, int header_size)
+void Block::write_grid(MPI_File fh, int header_size, int round)
 {
     struct timeval begin;
     gettimeofday(&begin, NULL);
 
-    if (x == 0 && y == 0)
-    {
-        printf("Write Grid - Setup: ");
-        print_time_since(begin);
-    }
-    gettimeofday(&begin, NULL);
-
     for (int row = 1; row <= height; row++)
     {
-        int bytes_per_row = ceil(width / 8);
-        char *buffer = write_buffers[y * world->cols + x];
-        buffer[row * bytes_per_row - 1] = 0; // Clear last otherwise unwritten pixels in the buffer
-        buffer_row(&buffer[row * bytes_per_row], row);
+        int bytes_per_row = ceil(width / 8.0);
+        unsigned char *buffer = &(write_buffers[round][(row - 1) * bytes_per_row]);
+        int buffer_size = bytes_per_row;
+        buffer[buffer_size - 1] = 0; // Clear last otherwise unwritten pixels in the buffer
+        buffer_row(buffer, row);
 
         int bytes_per_row_global = ceil(world->width / 8.0);
         int current_row_global = (starting_y + row - 1);
         int offset = header_size + ((current_row_global * bytes_per_row_global) + starting_x / 8);
 
-        MPI_File_iwrite_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, MPI_STATUS_IGNORE);
+        int write_request_index = round * height + (row - 1);
+        MPI_File_iwrite_at(fh, offset, buffer, buffer_size, MPI_UNSIGNED_CHAR, &write_requests[write_request_index]);
     }
 
     if (x == 0 && y == 0)
     {
-        printf("Write Grid - Main: ");
+        printf("Write Grid: ");
         print_time_since(begin);
     }
 }
@@ -370,8 +374,7 @@ void Block::write(int step_number)
     char *filename = new char[100];
     sprintf(filename, "./images/frame_%03d.pbm", step_number);
 
-    MPI_File fh;
-    MPI_File_open(active_comm, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+    MPI_File_open(active_comm, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &file_handles[step_number]);
 
     if (x == 0 && y == 0)
     {
@@ -389,7 +392,7 @@ void Block::write(int step_number)
     // Let thread 0 write the header to file
     if (x == 0 && y == 0)
     {
-        MPI_File_write_at(fh, 0, header, header_size, MPI_CHAR, MPI_STATUS_IGNORE);
+        MPI_File_iwrite_at(file_handles[step_number], 0, header, header_size, MPI_CHAR, &write_requests_header[step_number]);
     }
 
     if (x == 0 && y == 0)
@@ -399,7 +402,7 @@ void Block::write(int step_number)
     }
 
     gettimeofday(&begin, NULL);
-    write_grid(fh, header_size);
+    write_grid(file_handles[step_number], header_size, step_number);
 
     if (x == 0 && y == 0)
     {
@@ -409,8 +412,20 @@ void Block::write(int step_number)
 
     gettimeofday(&begin, NULL);
 
-    MPI_Barrier(active_comm); // TODO remove barrier
-    MPI_File_close(&fh);
+    if (step_number == total_rounds - 1)
+    {
+        int indx;
+        MPI_Waitany(total_rounds, write_requests, &indx, MPI_STATUS_IGNORE);
+        printf("%d is done\n", indx);
+        MPI_Waitall(total_rounds * height, write_requests, MPI_STATUSES_IGNORE);
+        printf("data is there\n");
+        MPI_Waitall(total_rounds, write_requests_header, MPI_STATUSES_IGNORE);
+        printf("headers are there\n");
+        for (int step = 0; step < total_rounds; step++)
+        {
+            MPI_File_close(&file_handles[step]);
+        }
+    }
 
     if (x == 0 && y == 0)
     {

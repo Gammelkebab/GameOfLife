@@ -1,24 +1,21 @@
 #include "actor.h"
 
-Actor::Actor()
+#include "worker.h"
+#include "writer.h"
+
+Actor::Actor(World *world, int proc_num) : world(world), proc_num(proc_num)
 {
-    World *world = World::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, WORKER_SHARE);
-
-    //world->print();
-
-    world->fill(0);
-    world->glider(750, 400);
 }
 
-Actor *Actor::create(int gridsize_x, int gridsize_y, int proc_amt, int proc_num, double worker_share)
+Actor *Actor::create(int gridsize_x, int gridsize_y, int proc_amt, int proc_num, double worker_share, int total_iterations)
 {
-    World *world = new World(...);
-    if (world->is_worker())
+    World *world = new World(gridsize_x, gridsize_y, proc_amt, proc_num, worker_share, total_iterations);
+    if (world->is_worker(proc_num))
     {
-        return new Worker();
+        return new Worker(world, proc_num);
     }
     else
     {
-        return new Writer();
+        return new Writer(world, proc_num);
     }
 }

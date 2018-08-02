@@ -2,7 +2,6 @@
 #define world_h
 
 #include "block.h"
-#include "active_block.h"
 
 /**
  * Information on the Overall world
@@ -10,53 +9,24 @@
 class World
 {
 public:
+  World(int width, int height, int proc_amt, int proc_num, double worker_share, int total_iterations);
+
+public:
   int width, height;
   int rows, cols;
 
   int block_amt;
-  int proc_num;
   int worker_amt, writer_amt;
 
-  Active_block *active_block;
+  int total_iterations;
+
   Block ***blocks;
-
-  MPI_Comm active_comm;
-
-private:
-  bool master;
-
-private:
-  MPI_Request *send_requests;
-  MPI_Request *recv_requests;
-  bool first_write;
-
-private:
-  World(int width, int height, int rows, int cols, int proc_num, int worker_amt, int writer_amt);
-
-protected:
-  World() {}
-
-public:
-  static World *create(int width, int height, int proc_amt, int proc_num, double worker_share);
-
-private:
-  void set_active_comm();
-
-public:
-  void tick(int iteration, int total_iterations);
-
-private:
-  void write(int iterationint, int total_iterations);
-  void communicate();
-  void step();
-
-  void write_to_file(int iteration);
-  void load_for_write();
 
 public:
   void print();
-  void fill(unsigned char value);
-  void glider(int x, int y);
+
+public:
+  bool is_worker(int proc_num);
 };
 
 #endif

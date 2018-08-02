@@ -1,19 +1,12 @@
 #ifndef block_h
 #define block_h
 
-#include <mpi.h>
-
-typedef unsigned char **Grid;
-
-class World;
-
 class Block
 {
-  public:
-	Block(World *world, int block_num);
+	typedef unsigned char **Grid;
 
-  protected:
-	World *world;
+  public:
+	Block(int width, int height);
 
   protected:
 	int block_num;								   // the number of this block

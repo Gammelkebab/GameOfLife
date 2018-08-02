@@ -6,11 +6,12 @@
 class Actor
 {
 public:
-  Actor();
-  static Actor *create(int gridsize_x, int gridsize_y, int proc_amt, int proc_num, double worker_share);
+  Actor(World *world, int proc_num);
+  static Actor *create(int gridsize_x, int gridsize_y, int proc_amt, int proc_num, double worker_share, int total_iterations);
 
-private:
+protected:
   World *world;
+  int proc_num;
 
 public:
   void tick(int round);

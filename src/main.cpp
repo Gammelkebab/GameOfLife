@@ -1,6 +1,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <mpi.h>
 
 #include "debug/debug.h"
 
@@ -53,13 +54,13 @@ int main(int argc, char **argv)
     MPI_Get_processor_name(processor_name, &processor_name_length);
     printf("%d \t=> %s\n", proc_num, processor_name);
 
-    Actor *actor = Actor::create();
+    Actor *actor = Actor::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, WORKER_SHARE, FRAMES);
 
     for (int i = 0; i < FRAMES; ++i)
     {
         if (proc_num == 0)
         {
-            printf("round: %d\n", i + 1);
+            printf("round: %d of %d\n", i, FRAMES);
         }
         actor->tick(i);
     }

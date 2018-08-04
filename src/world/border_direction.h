@@ -1,6 +1,8 @@
 #ifndef border_direction_h
 #define border_direction_h
 
+#include <stdio.h>
+
 typedef enum Border_direction
 {
     NORTH,
@@ -12,6 +14,10 @@ typedef enum Border_direction
     SOUTH_WEST,
     SOUTH_EAST
 } Border_direction;
+
+const int Border_direction_count = 8;
+const Border_direction Border_direction_first = NORTH;
+const Border_direction Border_direction_last = SOUTH_EAST;
 
 inline void print_border_direction(Border_direction dir)
 {

@@ -7,7 +7,7 @@ class Actor
 {
 public:
   Actor(World *world, int proc_num);
-  static Actor *create(int gridsize_x, int gridsize_y, int proc_amt, int proc_num, double worker_share, int total_iterations);
+  static Actor *create(int gridsize_x, int gridsize_y, int proc_amt, int proc_num, int total_rounds);
 
 protected:
   World *world;
@@ -15,6 +15,7 @@ protected:
 
 public:
   void tick(int round);
+  void finalize();
 };
 
 #endif

@@ -9,7 +9,7 @@
 class World
 {
 public:
-  World(int width, int height, int proc_amt, int proc_num, double worker_share, int total_iterations);
+  World(int width, int height, int proc_amt, int proc_num, int total_rounds);
 
 public:
   int width, height;
@@ -18,9 +18,7 @@ public:
   int block_amt;
   int worker_amt, writer_amt;
 
-  int total_iterations;
-
-  Block ***blocks;
+  int total_rounds;
 
 public:
   void print();

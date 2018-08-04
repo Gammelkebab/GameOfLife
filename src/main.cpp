@@ -7,9 +7,7 @@
 
 #include "actors/actor.h"
 
-
-#define MEDIUM
-#define WORKER_SHARE 0.7
+#define SMALL
 
 #ifdef SMALL
 #define GRIDSIZE_X 202
@@ -37,8 +35,6 @@ int main(int argc, char **argv)
     double elapsed = 0;
     struct timeval begin, end;
 
-    gettimeofday(&begin, NULL);
-
     int proc_amt, proc_num;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &proc_num);
@@ -54,8 +50,13 @@ int main(int argc, char **argv)
     MPI_Get_processor_name(processor_name, &processor_name_length);
     printf("%d \t=> %s\n", proc_num, processor_name);
 
-    Actor *actor = Actor::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, WORKER_SHARE, FRAMES);
+    /* Timer start */
 
+    gettimeofday(&begin, NULL);
+
+    Actor *actor = Actor::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, FRAMES);
+
+    // Main execution loop
     for (int i = 0; i < FRAMES; ++i)
     {
         if (proc_num == 0)
@@ -64,6 +65,9 @@ int main(int argc, char **argv)
         }
         actor->tick(i);
     }
+    actor->finalize();
+
+    /* Timer end */
 
     gettimeofday(&end, NULL);
     elapsed += (end.tv_sec - begin.tv_sec) + ((end.tv_usec - begin.tv_usec) / 1000000.0);

@@ -7,13 +7,9 @@
 #include "../helpers/array2d.h"
 #include "../helpers/timing.h"
 
-World::World(int width, int height, int proc_amt, int proc_num, double worker_share, int total_iterations) : width(width), height(height), total_iterations(total_iterations)
+World::World(int width, int height, int proc_amt, int proc_num, int total_rounds) : width(width), height(height), total_rounds(total_rounds)
 {
-    // Initial worker amount is set to the approximate worker share percentage of all processes
-    // We do not wann all or no threads to be workers
-    // After calculating the number of rows and columns,
-    // the resulting number of blocks is never larger than the temporarily set worker amount
-    int worker_amt_tmp = btw(proc_amt * worker_share, 1, proc_amt - 1);
+    int worker_amt_tmp = proc_amt;
 
     // Distributes rows and columns proportionally to the overall pixel aspect ratio
     float rows_tmp = sqrt(worker_amt_tmp * ((float)height / width));
@@ -44,19 +40,7 @@ World::World(int width, int height, int proc_amt, int proc_num, double worker_sh
     }
 
     block_amt = rows * cols;
-    worker_amt = block_amt;             // There is one worker for every block
-    writer_amt = proc_num - worker_amt; // All remaining threads are writers
-
-    blocks = new Block **[rows];
-    for (int y = 0; y < rows; y++)
-    {
-        blocks[y] = new Block *[cols];
-        for (int x = 0; x < cols; x++)
-        {
-            int block_num = y * cols + x;
-            blocks[y][x] = new Block(this, block_num);
-        }
-    }
+    worker_amt = block_amt; // There is one worker for every block
 }
 
 void World::print()
@@ -65,13 +49,6 @@ void World::print()
     printf("\tPixels: %d x %d\n", width, height);
     printf("\tBlocks: %d x %d\n", cols, rows);
     printf("\n}\n");
-    for (int y = 0; y < rows; y++)
-    {
-        for (int x = 0; x < cols; x++)
-        {
-            blocks[y][x]->print();
-        }
-    }
 }
 
 bool World::is_worker(int proc_num)

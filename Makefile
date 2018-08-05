@@ -5,6 +5,8 @@ SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 
+IMAGE_DIR = images
+
 SRC = $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/**/*.cpp)
 OBJ = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC))
 OBJ_MAIN = $(filter-out obj/test.o, $(OBJ))
@@ -13,9 +15,12 @@ BIN = bin/main bin/test
 
 #first target
 main : $(OBJ_MAIN)
+	mkdir -p $(BIN_DIR)
+	mkdir -p $(IMAGE_DIR)
 	$(CC) $(CFLAGS) -o bin/main $^
 	
 test_c : $(OBJ_TEST)
+	mkdir $(BIN_DIR)
 	$(CC) $(CFLAGS) -o bin/test $^
 
 run : main
@@ -31,7 +36,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 clean :
 	rm -rf $(BIN_DIR) $(OBJ_DIR)
-	rm -rf ./images/frame_*
+	rm -rf $(IMAGE_DIR)
 	rm -rf ./output.gif
 
 full : clean main

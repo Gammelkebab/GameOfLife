@@ -4,10 +4,10 @@
 #include <stdio.h>
 
 #include "../debug/debug.h"
-#include "../helpers/array2d.h"
+#include "../helpers/grid.h"
 #include "../helpers/timing.h"
 
-World::World(int width, int height, int proc_amt, int proc_num, int total_rounds) : width(width), height(height), total_rounds(total_rounds)
+World::World(int width, int height, int proc_amt, int total_rounds) : width(width), height(height), total_rounds(total_rounds)
 {
     int worker_amt_tmp = proc_amt;
 

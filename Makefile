@@ -25,6 +25,7 @@ test : test_c
 
 #each object depends on the c-file with the same name
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean :

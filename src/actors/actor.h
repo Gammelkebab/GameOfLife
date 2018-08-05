@@ -14,8 +14,8 @@ protected:
   int proc_num;
 
 public:
-  void tick(int round);
-  void finalize();
+  virtual void tick(int round) = 0;
+  virtual void finalize() = 0;
 };
 
 #endif

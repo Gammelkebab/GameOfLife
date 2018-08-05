@@ -30,7 +30,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean :
-	rm -rf $(BIN) $(OBJ)
+	rm -rf $(BIN_DIR) $(OBJ_DIR)
 	rm -rf ./images/frame_*
 	rm -rf ./output.gif
 

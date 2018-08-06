@@ -116,10 +116,10 @@ Block::Block(World *world, int proc_num) : world(world), block_num(proc_num)
  */
 void Block::randomize()
 {
-    srand(time(NULL));
-    for (int x = 1; x <= width; ++x)
+    srand(time(NULL) * block_num);
+    for (int x = 1; x <= width; x++)
     {
-        for (int y = 1; y <= height; ++y)
+        for (int y = 1; y <= height; y++)
         {
             debug4("Randomizing (%d, %d).\n", x, y);
             grid[y][x] = (int)rand() % 100 < 35 ? 1 : 0;

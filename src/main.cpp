@@ -12,7 +12,7 @@
 #ifdef TINY
 #define GRIDSIZE_X 33
 #define GRIDSIZE_Y 29
-#define FRAMES 10
+#define FRAMES 50
 #else
 #ifdef SMALL
 #define GRIDSIZE_X 202

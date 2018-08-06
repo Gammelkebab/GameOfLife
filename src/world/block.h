@@ -52,7 +52,7 @@ public:
 
   void compress(unsigned char **buffer);
 
-  int get_border_size_byte(Border_direction dir);
+  int get_border_size(Border_direction dir);
   int get_neighbor_block_num(Border_direction dir);
   void wrap_border(Border_direction dir, unsigned char *buffer);
   void unwrap_border(Border_direction dir, unsigned char *buffer);

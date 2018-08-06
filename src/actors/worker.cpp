@@ -48,7 +48,7 @@ Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
         for (int i = Border_direction_first; i <= Border_direction_last; i++)
         {
             Border_direction dir = (Border_direction)i;
-            int buffer_size = block->get_border_size_byte(dir);
+            int buffer_size = block->get_border_size(dir);
             border_send_buffers[r][dir] = new unsigned char[buffer_size];
         }
     }
@@ -65,10 +65,10 @@ Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
 
     debug3("Worker %d done with comm setup.\n", proc_num);
     debug3("Filling Worker %d.\n", proc_num);
-    //fill(0);
-    fill(1);
+    fill(0);
+    //fill(1);
     debug3("Creating Glider at Worker %d.\n", proc_num);
-    //glider(0, 0);
+    glider(5, 5);
     debug3("Worker %d done.\n", proc_num);
 }
 
@@ -155,7 +155,7 @@ void Worker::communicate(int round)
     {
         Border_direction dir = (Border_direction)i;
 
-        int border_recv_buffer_size = block->get_border_size_byte(dir);
+        int border_recv_buffer_size = block->get_border_size(dir);
         unsigned char border_recv_buffer[border_recv_buffer_size];
 
         border_recv(dir, border_recv_buffer);
@@ -227,7 +227,8 @@ int Worker::iwrite_header(MPI_File *fh, int round, MPI_Request *write_request)
  */
 void Worker::iwrite_block(MPI_File *fh, unsigned char **buffer_compressed, MPI_Request *write_requests, int header_size)
 {
-    int row_width_byte = world->width_byte;
+    int row_width_byte = block->width_byte;
+    int row_width_global_byte = world->width_byte;
     int buffer_rows = block->height;
     for (int row = 0; row < buffer_rows; row++)
     {
@@ -236,7 +237,7 @@ void Worker::iwrite_block(MPI_File *fh, unsigned char **buffer_compressed, MPI_R
          * The offset added by the current row
          * The offset inside the current row
          */
-        int offset = header_size + (block->starting_y + row) * row_width_byte + block->starting_x / 8;
+        int offset = header_size + (block->starting_y + row) * row_width_global_byte + block->starting_x / 8;
         debug4("Worker %d row %d has offset %d.\n", proc_num, row, offset);
         unsigned char *row_buffer = buffer_compressed[row];
         MPI_File_iwrite_at(*fh, offset, row_buffer, row_width_byte, MPI_UNSIGNED_CHAR, &write_requests[row]);
@@ -250,7 +251,7 @@ void Worker::iwrite_block(MPI_File *fh, unsigned char **buffer_compressed, MPI_R
  */
 void Worker::border_send(Border_direction target_dir, unsigned char *buffer, MPI_Request *send_request)
 {
-    int element_count = block->get_border_size_byte(target_dir);
+    int element_count = block->get_border_size(target_dir);
     int target_block = block->get_neighbor_block_num(target_dir);
     int tag = target_dir;
     MPI_Isend(buffer, element_count, MPI_UNSIGNED_CHAR, target_block, tag, worker_comm, send_request);
@@ -261,7 +262,7 @@ void Worker::border_send(Border_direction target_dir, unsigned char *buffer, MPI
  */
 void Worker::border_recv(Border_direction source_dir, unsigned char *buffer)
 {
-    int element_count = block->get_border_size_byte(source_dir);
+    int element_count = block->get_border_size(source_dir);
     int source_block = block->get_neighbor_block_num(source_dir);
     int tag = opposite_direction(source_dir);
     MPI_Recv(buffer, element_count, MPI_UNSIGNED_CHAR, source_block, tag, worker_comm, MPI_STATUS_IGNORE);

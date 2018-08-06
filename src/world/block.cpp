@@ -153,11 +153,11 @@ void Block::compress(unsigned char **buffer)
     }
 }
 
-int Block::get_border_size_byte(Border_direction dir)
+int Block::get_border_size(Border_direction dir)
 {
     if (dir == NORTH || dir == SOUTH)
     {
-        return width_byte;
+        return width;
     }
     else if (dir == EAST || dir == WEST)
     {

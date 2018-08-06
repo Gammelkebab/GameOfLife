@@ -79,7 +79,9 @@ int main(int argc, char **argv)
     debug1("Processor %d finalizing.\n", proc_num);
     actor->finalize();
 
+    debug("Thread %d at barrier.\n", proc_num);
     MPI_Barrier(MPI_COMM_WORLD);
+    debug("Thread %d through.\n", proc_num);
 
     /* Timer end */
 

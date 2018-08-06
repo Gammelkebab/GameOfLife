@@ -104,6 +104,7 @@ void Worker::finalize()
     {
         MPI_Wait(&header_write_requests[round], MPI_STATUS_IGNORE);
     }
+    debug3("Worker %d header write requests finished.\n", proc_num);
     // Finish all block write requests
     for (int round = 0; round < world->total_rounds; round++)
     {
@@ -112,6 +113,7 @@ void Worker::finalize()
             MPI_Wait(&block_write_requests[round][row], MPI_STATUS_IGNORE);
         }
     }
+    debug3("Worker %d block write requests finished.\n", proc_num);
     // Finish all border send requests
     for (int round = 0; round < world->total_rounds; round++)
     {
@@ -120,6 +122,7 @@ void Worker::finalize()
             MPI_Wait(&border_send_requests[round][i], MPI_STATUS_IGNORE);
         }
     }
+    debug3("Worker %d border send requests finished.\n", proc_num);
 }
 
 void Worker::store(int round)

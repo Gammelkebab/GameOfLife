@@ -13,4 +13,4 @@ module load intel
 
 make clean
 make
-mpirun ./main
+mpirun ./bin/main

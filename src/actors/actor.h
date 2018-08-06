@@ -2,6 +2,7 @@
 #define actor_h
 
 #include "../world/world.h"
+#include <mpi.h>
 
 class Actor
 {
@@ -12,6 +13,10 @@ public:
 protected:
   World *world;
   int proc_num;
+  MPI_Comm worker_comm; // The MPI Comm for all active workers
+
+private:
+  void set_worker_comm(); // Set the MPI Comm for all active workers
 
 public:
   virtual void tick(int round) = 0;

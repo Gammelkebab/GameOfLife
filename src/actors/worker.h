@@ -12,8 +12,7 @@ public:
   Worker(World *world, int proc_num); // Create a new Worker
 
 private:
-  Block *block;         // The block this worker works on
-  MPI_Comm worker_comm; // The MPI Comm for all active workers
+  Block *block; // The block this worker works on
 
   char **header_write_buffers;          // Header write buffers for every round
   MPI_Request *header_write_requests;   // Header write requests for every round
@@ -22,9 +21,6 @@ private:
   unsigned char ***border_send_buffers; // Border send buffers for every round and every direction
   MPI_Request **border_send_requests;   // Border send requests for every round and every direction
   MPI_File *file_handles;               // File handles for every round
-
-private:
-  void set_worker_comm(); // Set the MPI Comm for all active workers
 
 public:
   void tick(int round); // Do everything necessary for one iteration of Game of Life

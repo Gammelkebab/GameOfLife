@@ -61,29 +61,12 @@ Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
 
     debug3("Worker %d done with buffer creation.\n", proc_num);
 
-    set_worker_comm();
-
-    debug3("Worker %d done with comm setup.\n", proc_num);
     //debug3("Filling Worker %d.\n", proc_num);
     //fill(0);
     //fill(1);
     //debug3("Creating Glider at Worker %d.\n", proc_num);
     //glider(5, 5);
     //debug3("Worker %d done.\n", proc_num);
-}
-
-void Worker::set_worker_comm()
-{
-    int active_comm_list[world->worker_amt];
-    for (int i = 0; i < world->worker_amt; i++)
-    {
-        active_comm_list[i] = i;
-    }
-
-    MPI_Group world_group, active_group;
-    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
-    MPI_Group_incl(world_group, world->worker_amt, active_comm_list, &active_group);
-    MPI_Comm_create(MPI_COMM_WORLD, active_group, &worker_comm);
 }
 
 void Worker::tick(int round)

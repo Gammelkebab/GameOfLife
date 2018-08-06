@@ -72,9 +72,9 @@ int main(int argc, char **argv)
         {
             printf("round: %d of %d\n", i, FRAMES);
         }
-        debug1("Processor %d doing tick.\n", proc_num);
+        debug3("Processor %d doing tick.\n", proc_num);
         actor->tick(i);
-        debug1("done.\n");
+        debug3("done.\n");
     }
     debug1("Processor %d finalizing.\n", proc_num);
     actor->finalize();

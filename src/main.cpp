@@ -7,8 +7,13 @@
 
 #include "actors/actor.h"
 
-#define SMALL
+#define TINY
 
+#ifdef TINY
+#define GRIDSIZE_X 33
+#define GRIDSIZE_Y 29
+#define FRAMES 10
+#else
 #ifdef SMALL
 #define GRIDSIZE_X 202
 #define GRIDSIZE_Y 200
@@ -22,6 +27,7 @@
 #define GRIDSIZE_X 1920
 #define GRIDSIZE_Y 1080
 #define FRAMES 900
+#endif
 #endif
 #endif
 
@@ -48,23 +54,29 @@ int main(int argc, char **argv)
     char processor_name[100];
     int processor_name_length;
     MPI_Get_processor_name(processor_name, &processor_name_length);
-    printf("%d \t=> %s\n", proc_num, processor_name);
+    debug0("%d \t=> %s\n", proc_num, processor_name);
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     /* Timer start */
 
     gettimeofday(&begin, NULL);
 
     Actor *actor = Actor::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, FRAMES);
+    debug1("Actor %d created.\n", proc_num);
 
     // Main execution loop
-    for (int i = 0; i < FRAMES; ++i)
+    for (int i = 0; i < FRAMES; i++)
     {
         if (proc_num == 0)
         {
             printf("round: %d of %d\n", i, FRAMES);
         }
+        debug1("Processor %d doing tick.\n", proc_num);
         actor->tick(i);
+        debug1("done.\n");
     }
+    debug1("Processor %d finalizing.\n", proc_num);
     actor->finalize();
 
     /* Timer end */

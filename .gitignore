@@ -2,6 +2,4 @@
 bin/*
 obj/*
 images/*
-!images/.gitkeep
-log*
 output.gif

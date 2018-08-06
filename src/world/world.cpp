@@ -9,6 +9,8 @@
 
 World::World(int width, int height, int proc_amt, int total_rounds) : width(width), height(height), total_rounds(total_rounds)
 {
+    width_byte = width / 8 + (width % 8 == 0 ? 0 : 1);
+
     int worker_amt_tmp = proc_amt;
 
     // Distributes rows and columns proportionally to the overall pixel aspect ratio
@@ -46,8 +48,10 @@ World::World(int width, int height, int proc_amt, int total_rounds) : width(widt
 void World::print()
 {
     printf("World:\n{\n");
-    printf("\tPixels: %d x %d\n", width, height);
-    printf("\tBlocks: %d x %d\n", cols, rows);
+    printf("\tPixels: \t%d x %d\n", width, height);
+    printf("\tBlocks: \t%d x %d\n", cols, rows);
+    printf("\tWorkers: \t%d\n", worker_amt);
+    printf("\tTotal rounds: \t%d\n", total_rounds);
     printf("\n}\n");
 }
 

@@ -21,7 +21,7 @@ private:
   MPI_Request **block_write_requests;   // Block write requests for every round and every row
   unsigned char ***border_send_buffers; // Border send buffers for every round and every direction
   MPI_Request **border_send_requests;   // Border send requests for every round and every direction
-  MPI_File **file_handles;              // File handles for every round
+  MPI_File *file_handles;               // File handles for every round
 
 private:
   void set_worker_comm(); // Set the MPI Comm for all active workers

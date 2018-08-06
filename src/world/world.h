@@ -11,10 +11,11 @@ public:
 
 public:
   int width, height;
+  int width_byte;
   int rows, cols;
 
   int block_amt;
-  int worker_amt, writer_amt;
+  int worker_amt;
 
   int total_rounds;
 

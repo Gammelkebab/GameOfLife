@@ -10,6 +10,10 @@
 Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
 {
     block = new Block(world, proc_num);
+    debug2("Block %d created.\n", proc_num);
+#if defined(DEBUG) && DEBUG >= 2
+    block->print();
+#endif
 
     /* Headers */
     header_write_buffers = new char *[world->total_rounds];
@@ -53,12 +57,19 @@ Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
     {
         border_send_requests[r] = new MPI_Request[Border_direction_count];
     }
+    file_handles = new MPI_File[world->total_rounds];
+
+    debug3("Worker %d done with buffer creation.\n", proc_num);
 
     set_worker_comm();
 
-    world->print();
-    fill(0);
-    glider(750, 400);
+    debug3("Worker %d done with comm setup.\n", proc_num);
+    debug3("Filling Worker %d.\n", proc_num);
+    //fill(0);
+    fill(1);
+    debug3("Creating Glider at Worker %d.\n", proc_num);
+    //glider(0, 0);
+    debug3("Worker %d done.\n", proc_num);
 }
 
 void Worker::set_worker_comm()
@@ -77,9 +88,13 @@ void Worker::set_worker_comm()
 
 void Worker::tick(int round)
 {
+    debug2("Worker %d at store.\n", proc_num);
     store(round);
+    debug2("Worker %d at comm.\n", proc_num);
     communicate(round);
+    debug2("Worker %d at step.\n", proc_num);
     step();
+    debug2("Worker %d done.\n", proc_num);
 }
 
 void Worker::finalize()
@@ -111,10 +126,14 @@ void Worker::store(int round)
 {
     unsigned char **buffer_compressed = block_write_buffers[round];
     block->compress(buffer_compressed);
+    debug3("Worker %d round %d done compressing.\n", proc_num, round);
 
     MPI_File *fh = open_file(round);
+    debug3("Worker %d round %d file opened.\n", proc_num, round);
     MPI_Request *header_write_request = &header_write_requests[round];
     int header_size = iwrite_header(fh, round, header_write_request);
+    debug3("Worker %d round %d done writing header.\n", proc_num, round);
+
     MPI_Request *block_write_requests = this->block_write_requests[round];
     iwrite_block(fh, buffer_compressed, block_write_requests, header_size);
 }
@@ -157,9 +176,9 @@ void Worker::step()
  */
 MPI_File *Worker::open_file(int round)
 {
-    char *filename = new char[100];
+    char filename[100];
     sprintf(filename, "./images/frame_%03d.pbm", round);
-    MPI_File *file_handle = file_handles[round];
+    MPI_File *file_handle = &file_handles[round];
     MPI_File_open(worker_comm, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, file_handle);
     return file_handle;
 }
@@ -178,6 +197,8 @@ MPI_File *Worker::open_file(int round)
  */
 int Worker::iwrite_header(MPI_File *fh, int round, MPI_Request *write_request)
 {
+    debug4("Worker %d round %d writing header.\n", proc_num, round);
+
     // Create the header lines
     char *header = header_write_buffers[round];
     sprintf(header, "P4\n%d %d\n", world->width, world->height);
@@ -186,6 +207,7 @@ int Worker::iwrite_header(MPI_File *fh, int round, MPI_Request *write_request)
     // Let thread 0 write the header to file
     if (block->x == 0 && block->y == 0)
     {
+        debug3("Header for round %d: %s\n", round, header);
         MPI_File_iwrite_at(*fh, 0, header, header_size, MPI_CHAR, write_request);
     }
     else
@@ -205,7 +227,7 @@ int Worker::iwrite_header(MPI_File *fh, int round, MPI_Request *write_request)
  */
 void Worker::iwrite_block(MPI_File *fh, unsigned char **buffer_compressed, MPI_Request *write_requests, int header_size)
 {
-    int row_width_byte = block->width_byte;
+    int row_width_byte = world->width_byte;
     int buffer_rows = block->height;
     for (int row = 0; row < buffer_rows; row++)
     {
@@ -214,7 +236,8 @@ void Worker::iwrite_block(MPI_File *fh, unsigned char **buffer_compressed, MPI_R
          * The offset added by the current row
          * The offset inside the current row
          */
-        int offset = header_size + (block->starting_y + row) * row_width_byte + block->starting_x;
+        int offset = header_size + (block->starting_y + row) * row_width_byte + block->starting_x / 8;
+        debug4("Worker %d row %d has offset %d.\n", proc_num, row, offset);
         unsigned char *row_buffer = buffer_compressed[row];
         MPI_File_iwrite_at(*fh, offset, row_buffer, row_width_byte, MPI_UNSIGNED_CHAR, &write_requests[row]);
     }

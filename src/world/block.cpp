@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "../debug/debug.h"
+
 #include "../helpers/figures.h"
 #include "../helpers/min_max.h"
 
@@ -20,16 +22,21 @@ Block::Block(World *world, int proc_num) : world(world), block_num(proc_num)
     last_row = y == world->rows - 1;
     last_col = x == world->cols - 1;
 
-    // calculate the pixels assigned to this block
-    // takes care of 8 bit allignment
-    // takes care of additional pixels from remainder of splitting
+    /* Calculate the pixels assigned to this block
+     * - Takes care of 8 bit allignment
+     * - Takes care of additional pixels from remainder of splitting
+     */
     width = world->width / world->cols;
     width -= width % 8;
     //max_width = width;
-    int remainder_x = world->width % (world->cols * 8); // the remainder after assigning full 8 bit blocks
-                                                        // this value is always < world->cols * 8
-                                                        // distribute all full 8 bit blocks of the remainder to the first blocks,
-                                                        // then the remaining bits to the last block
+
+    /*
+     * The remainder after assigning full 8 bit blocks
+     * This value is always < world->cols * 8
+     * distribute all full 8 bit blocks of the remainder to the first blocks, 
+     * then the remaining bits to the last block
+     */
+    int remainder_x = world->width % (world->cols * 8);
     if (x < remainder_x / 8)
     {
         width += 8;
@@ -86,16 +93,22 @@ Block::Block(World *world, int proc_num) : world(world), block_num(proc_num)
 
     // Create the write buffer grid, containing compressed information about the block
     // 8 Pixels are compressed into one byte
-    width_byte = width / 8 + (remainder_x == 0 ? 0 : 1);
-    //height_byte = height / 8 + (remainder_y == 0 ? 0 : 1);
+    width_byte = width / 8 + (width % 8 == 0 ? 0 : 1);
+    //height_byte = height / 8 + (height % 8 == 0 ? 0 : 1);
 
     //max_width_byte = max_width / 8 + (max_width % 8 == 0 ? 0 : 1);
     //max_height_byte = max_height / 8 + (max_height % 8 == 0 ? 0 : 1);
 
-    grid = create_grid(width, height);
-    next_grid = create_grid(width, height);
+    debug3("Block %d done with setup calculations.\n", proc_num);
+
+    grid = create_grid(width + 2, height + 2);
+    next_grid = create_grid(width + 2, height + 2);
+
+    debug3("Block %d done with creating grid buffers.\n", proc_num);
 
     randomize();
+
+    debug3("Block %d done randomizing.\n", proc_num);
 }
 
 /**
@@ -108,29 +121,33 @@ void Block::randomize()
     {
         for (int y = 1; y <= height; ++y)
         {
+            debug4("Randomizing (%d, %d).\n", x, y);
             grid[y][x] = (int)rand() % 100 < 35 ? 1 : 0;
+            debug4("done.\n");
         }
     }
 }
 
 void Block::compress(unsigned char **buffer)
 {
-    memset(buffer, 0, width_byte * height);
-    for (int y = 0; y < height; y++)
+    for (int row = 0; row < height; row++)
     {
-        for (int x = 0; x < width; x++)
+        memset(buffer[row], 0, width_byte);
+    }
+    for (int grid_y = 1; grid_y <= height; grid_y++)
+    {
+        for (int grid_x = 1; grid_x <= width; grid_x++)
         {
-            //information about 8 cells are packed into one byte
-            for (int k = 0; k < 8; ++k)
+            /* Information about 8 cells are packed into one byte.
+             * If the number of pixels in a row is not divisible by 8, 
+             * the remaining bits are left empty.
+             */
+            int buffer_x = (grid_x - 1) / 8;
+            int buffer_y = grid_y - 1;
+            int k = (grid_x - 1) % 8;
+            if (grid[grid_y][grid_x] == 1)
             {
-                if (x * 8 + k >= width)
-                {
-                    break;
-                }
-                if (grid[y][x * 8 + k] == 1)
-                {
-                    buffer[y][x] += pow(2, 7 - k);
-                }
+                buffer[buffer_y][buffer_x] |= 1 << (7 - k);
             }
         }
     }
@@ -318,6 +335,7 @@ void Block::fill(unsigned char value)
 
 void Block::glider(int x, int y)
 {
+    debug4("Creating glider at (%d, %d) for block %d", x, y, block_num);
     using namespace figures;
     figures::glider(grid, x, y);
 }
@@ -524,6 +542,7 @@ void Block::print()
     printf("Block:\n{\n");
     printf("\tPosition: \t(%d, %d)\n", x, y);
     printf("\tPixel size: \t%d x %d\n", width, height);
+    printf("\tWidth Byte: \t%d\n", width_byte);
     printf("\tPixel start: \t(%d x %d)\n", starting_x, starting_y);
     printf("\tSpecial Info:\n");
     printf("\t{\n");

@@ -123,8 +123,6 @@ void Worker::finalize()
         }
     }
     debug3("Worker %d border send requests finished.\n", proc_num);
-
-    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void Worker::store(int round)

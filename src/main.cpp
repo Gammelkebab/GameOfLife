@@ -79,6 +79,8 @@ int main(int argc, char **argv)
     debug1("Processor %d finalizing.\n", proc_num);
     actor->finalize();
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
     /* Timer end */
 
     gettimeofday(&end, NULL);

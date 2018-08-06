@@ -64,12 +64,12 @@ Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
     set_worker_comm();
 
     debug3("Worker %d done with comm setup.\n", proc_num);
-    debug3("Filling Worker %d.\n", proc_num);
-    fill(0);
+    //debug3("Filling Worker %d.\n", proc_num);
+    //fill(0);
     //fill(1);
-    debug3("Creating Glider at Worker %d.\n", proc_num);
-    glider(5, 5);
-    debug3("Worker %d done.\n", proc_num);
+    //debug3("Creating Glider at Worker %d.\n", proc_num);
+    //glider(5, 5);
+    //debug3("Worker %d done.\n", proc_num);
 }
 
 void Worker::set_worker_comm()

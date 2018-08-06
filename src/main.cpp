@@ -7,7 +7,7 @@
 
 #include "actors/actor.h"
 
-#define TINY
+#define LARGE
 
 #ifdef TINY
 #define GRIDSIZE_X 33
@@ -79,9 +79,9 @@ int main(int argc, char **argv)
     debug1("Processor %d finalizing.\n", proc_num);
     actor->finalize();
 
-    debug("Thread %d at barrier.\n", proc_num);
+    debug2("Thread %d at barrier.\n", proc_num);
     MPI_Barrier(MPI_COMM_WORLD);
-    debug("Thread %d through.\n", proc_num);
+    debug2("Thread %d through.\n", proc_num);
 
     /* Timer end */
 

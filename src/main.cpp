@@ -65,6 +65,8 @@ int main(int argc, char **argv)
     Actor *actor = Actor::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, FRAMES);
     debug1("Actor %d created.\n", proc_num);
 
+    print_time_since(&begin);
+
     // Main execution loop
     for (int i = 0; i < FRAMES; i++)
     {
@@ -76,8 +78,12 @@ int main(int argc, char **argv)
         actor->tick(i);
         debug3("done.\n");
     }
+
+    timeval fin;
+    start_timer(&fin);
     debug1("Processor %d finalizing.\n", proc_num);
     actor->finalize();
+    print_time_since(&fin);
 
     debug2("Thread %d at barrier.\n", proc_num);
     MPI_Barrier(MPI_COMM_WORLD);

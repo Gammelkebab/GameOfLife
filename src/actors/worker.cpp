@@ -71,12 +71,22 @@ Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
 
 void Worker::tick(int round)
 {
-    debug2("Worker %d at store.\n", proc_num);
+    timeval t;
+    start_timer(&t);
+
+    printf("Worker %d at store.\n", proc_num);
     store(round);
+    print_time_since(&t);
+    start_timer(&t);
+
     debug2("Worker %d at comm.\n", proc_num);
     communicate(round);
+    print_time_since(&t);
+    start_timer(&t);
+
     debug2("Worker %d at step.\n", proc_num);
     step();
+    print_time_since(&t);
     debug2("Worker %d done.\n", proc_num);
 }
 

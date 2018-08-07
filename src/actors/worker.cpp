@@ -83,27 +83,18 @@ void Worker::tick(int round)
 void Worker::finalize()
 {
     // Finish all header write requests
-    for (int round = 0; round < world->total_rounds; round++)
-    {
-        MPI_Wait(&header_write_requests[round], MPI_STATUS_IGNORE);
-    }
+    MPI_Waitall(world->total_rounds, header_write_requests, MPI_STATUSES_IGNORE);
     debug3("Worker %d header write requests finished.\n", proc_num);
     // Finish all block write requests
     for (int round = 0; round < world->total_rounds; round++)
     {
-        for (int row = 0; row < block->height; row++)
-        {
-            MPI_Wait(&block_write_requests[round][row], MPI_STATUS_IGNORE);
-        }
+        MPI_Waitall(block->height, block_write_requests[round], MPI_STATUSES_IGNORE);
     }
     debug3("Worker %d block write requests finished.\n", proc_num);
     // Finish all border send requests
     for (int round = 0; round < world->total_rounds; round++)
     {
-        for (int i = Border_direction_first; i <= Border_direction_last; i++)
-        {
-            MPI_Wait(&border_send_requests[round][i], MPI_STATUS_IGNORE);
-        }
+        MPI_Waitall(Border_direction_count, border_send_requests[round], MPI_STATUSES_IGNORE);
     }
     debug3("Worker %d border send requests finished.\n", proc_num);
 }

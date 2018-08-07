@@ -76,17 +76,17 @@ void Worker::tick(int round)
 
     printf("Worker %d at store.\n", proc_num);
     store(round);
-    print_time_since(&t);
+    print_time_since("Store", &t);
     start_timer(&t);
 
     debug2("Worker %d at comm.\n", proc_num);
     communicate(round);
-    print_time_since(&t);
+    print_time_since("Comm", &t);
     start_timer(&t);
 
     debug2("Worker %d at step.\n", proc_num);
     step();
-    print_time_since(&t);
+    print_time_since("Step", &t);
     debug2("Worker %d done.\n", proc_num);
 }
 

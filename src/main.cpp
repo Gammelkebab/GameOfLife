@@ -4,6 +4,7 @@
 #include <mpi.h>
 
 #include "debug/debug.h"
+#include "helpers/timing.h"
 
 #include "actors/actor.h"
 

@@ -3,8 +3,8 @@
 #include <string.h>
 
 #include "../debug/debug.h"
-
 #include "../helpers/timing.h"
+
 #include "../world/border_direction.h"
 
 Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)

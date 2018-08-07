@@ -17,15 +17,12 @@ public:
   int rows, cols;
 
   int block_amt;
-  int worker_amt;
+  int worker_amt, writer_amt;
+  int *writer_nums;
 
   int total_rounds;
 
   Block ***blocks;
-
-private:
-  int writer_amt;
-  int *writer_nums;
 
 public:
   void set_blocks();

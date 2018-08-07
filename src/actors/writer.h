@@ -20,6 +20,7 @@ public:
   void finalize();
 
 private:
+  void recv_and_write(int round);
   MPI_File *open_file(int round);
   int iwrite_header(MPI_File *fh, int round);
   void iwrite_block(MPI_File *fh, int header_size, int round);

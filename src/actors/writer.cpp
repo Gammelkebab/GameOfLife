@@ -17,6 +17,14 @@ Writer::Writer(World *world, int proc_num) : Actor(world, proc_num)
 
 void Writer::tick(int round)
 {
+    if (world->get_writer_num(round) == proc_num)
+    {
+        recv_and_write(round);
+    }
+}
+
+void Writer::recv_and_write(int round)
+{
     // Create the header lines for this round
     char header_buffer[100];
     sprintf(header_buffer, "P4\n%d %d\n", world->width, world->height);

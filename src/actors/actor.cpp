@@ -26,14 +26,8 @@ Actor *Actor::create(int gridsize_x, int gridsize_y, int proc_amt, int proc_num,
 
 void Actor::set_worker_comm()
 {
-    int active_comm_list[world->worker_amt];
-    for (int i = 0; i < world->worker_amt; i++)
-    {
-        active_comm_list[i] = i;
-    }
-
     MPI_Group world_group, active_group;
     MPI_Comm_group(MPI_COMM_WORLD, &world_group);
-    MPI_Group_incl(world_group, world->worker_amt, active_comm_list, &active_group);
+    MPI_Group_excl(world_group, world->writer_amt, world->writer_nums, &active_group);
     MPI_Comm_create(MPI_COMM_WORLD, active_group, &worker_comm);
 }

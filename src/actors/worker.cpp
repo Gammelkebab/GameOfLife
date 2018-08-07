@@ -74,7 +74,7 @@ void Worker::tick(int round)
     timeval t;
     start_timer(&t);
 
-    printf("Worker %d at store.\n", proc_num);
+    debug2("Worker %d at store.\n", proc_num);
     store(round);
     print_time_since("Store", &t);
     start_timer(&t);

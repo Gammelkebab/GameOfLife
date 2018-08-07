@@ -6,12 +6,14 @@
 #include "../debug/debug.h"
 #include "../helpers/grid.h"
 #include "../helpers/timing.h"
+#include "../helpers/min_max.h"
 
-World::World(int width, int height, int proc_amt, int total_rounds) : width(width), height(height), total_rounds(total_rounds)
+World::World(int width, int height, int proc_amt, int total_rounds, double worker_share) : width(width), height(height), total_rounds(total_rounds)
 {
     width_byte = width / 8 + (width % 8 == 0 ? 0 : 1);
 
-    int worker_amt_tmp = proc_amt;
+    // Never have noone or everyone at work
+    int worker_amt_tmp = btw(proc_amt * worker_share, 1, proc_amt - 1);
 
     // Distributes rows and columns proportionally to the overall pixel aspect ratio
     float rows_tmp = sqrt(worker_amt_tmp * ((float)height / width));
@@ -43,6 +45,49 @@ World::World(int width, int height, int proc_amt, int total_rounds) : width(widt
 
     block_amt = rows * cols;
     worker_amt = block_amt; // There is one worker for every block
+    writer_amt = proc_amt - worker_amt;
+
+    // TODO
+    // This enables scattering the writers amongst cores,
+    // as long as the processor-core-distribution is known
+    writer_nums = new int[worker_amt];
+    for (int w = 0; w < writer_amt; w++)
+    {
+        writer_nums[w] = w;
+    }
+}
+
+void World::set_blocks()
+{
+    blocks = new Block **[rows];
+    for (int row = 0; row < rows; row++)
+    {
+        blocks[row] = new Block *[cols];
+        for (int col = 0; col < cols; col++)
+        {
+            int block_num = row * cols + col;
+            blocks[row][col] = new Block(this, block_num);
+        }
+    }
+}
+
+bool World::is_worker(int proc_num)
+{
+    // Processor proc_num is a worker,
+    // as long as it does not appear in the writer array
+    for (int w = 0; w < writer_amt; w++)
+    {
+        if (writer_nums[w] == proc_num)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+int World::get_writer_num(int round)
+{
+    return writer_nums[round % writer_amt];
 }
 
 void World::print()
@@ -53,9 +98,4 @@ void World::print()
     printf("\tWorkers: \t%d\n", worker_amt);
     printf("\tTotal rounds: \t%d\n", total_rounds);
     printf("\n}\n");
-}
-
-bool World::is_worker(int proc_num)
-{
-    return proc_num < worker_amt;
 }

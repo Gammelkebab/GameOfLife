@@ -8,6 +8,7 @@
 
 #include "actors/actor.h"
 
+#define WORKER_SHARE 0.5
 #define LARGE
 
 #ifdef TINY
@@ -55,7 +56,6 @@ int main(int argc, char **argv)
     char processor_name[100];
     int processor_name_length;
     MPI_Get_processor_name(processor_name, &processor_name_length);
-    debug0("%d \t=> %s\n", proc_num, processor_name);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -63,8 +63,7 @@ int main(int argc, char **argv)
 
     gettimeofday(&begin, NULL);
 
-    Actor *actor = Actor::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, FRAMES);
-    debug1("Actor %d created.\n", proc_num);
+    Actor *actor = Actor::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, FRAMES, WORKER_SHARE);
 
     print_time_since("Create", &begin);
 
@@ -75,20 +74,17 @@ int main(int argc, char **argv)
         {
             printf("round: %d of %d\n", i, FRAMES);
         }
-        debug3("Processor %d doing tick.\n", proc_num);
+
         actor->tick(i);
-        debug3("done.\n");
     }
 
     timeval fin;
     start_timer(&fin);
-    debug1("Processor %d finalizing.\n", proc_num);
+
     actor->finalize();
     print_time_since("Finalize", &fin);
 
-    debug2("Thread %d at barrier.\n", proc_num);
     MPI_Barrier(MPI_COMM_WORLD);
-    debug2("Thread %d through.\n", proc_num);
 
     /* Timer end */
 

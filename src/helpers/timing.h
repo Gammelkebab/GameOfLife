@@ -10,7 +10,7 @@ inline void start_timer(struct timeval *begin)
     gettimeofday(begin, NULL);
 }
 
-inline void print_time_since(char *prefix, struct timeval *begin)
+inline void print_time_since(const char *prefix, struct timeval *begin)
 {
     struct timeval end;
 

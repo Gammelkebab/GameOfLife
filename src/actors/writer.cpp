@@ -70,8 +70,6 @@ void Writer::recv_and_write(int round)
             }
         }
     }
-
-    //debug("opening file\n");
     MPI_File *file = open_file(round);
     // Write the file write buffer to the file
     iwrite_block(file, header_size, round);

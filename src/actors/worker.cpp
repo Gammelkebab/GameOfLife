@@ -41,19 +41,19 @@ Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
 
 void Worker::tick(int round)
 {
-    timeval t;
-    start_timer(&t);
+    //timeval t;
+    //start_timer(&t);
 
     store(round);
-    print_time_since("Store", &t);
-    start_timer(&t);
+    //print_time_since("Store", &t);
+    //start_timer(&t);
 
     communicate(round);
-    print_time_since("Comm", &t);
-    start_timer(&t);
+    //print_time_since("Comm", &t);
+    //start_timer(&t);
 
     step();
-    print_time_since("Step", &t);
+    //print_time_since("Step", &t);
 }
 
 void Worker::finalize()

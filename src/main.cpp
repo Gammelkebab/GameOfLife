@@ -60,32 +60,22 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
 
     /* Timer start */
-
     gettimeofday(&begin, NULL);
 
     Actor *actor = Actor::create(GRIDSIZE_X, GRIDSIZE_Y, proc_amt, proc_num, FRAMES, WORKER_SHARE);
 
-    print_time_since("Create", &begin);
-
     // Main execution loop
     for (int i = 0; i < FRAMES; i++)
     {
+        /*
         if (proc_num == 0)
         {
             printf("round: %d of %d\n", i, FRAMES);
         }
-
+        */
         actor->tick(i);
     }
-
-    timeval fin;
-    start_timer(&fin);
-
-    actor->finalize();
-    print_time_since("Finalize", &fin);
-
     
-
     MPI_Barrier(MPI_COMM_WORLD);
 
     /* Timer end */

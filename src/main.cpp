@@ -9,7 +9,7 @@
 #include "actors/actor.h"
 
 #define WORKER_SHARE 0.5
-#define SMALL
+#define MEDIUM
 
 #ifdef TINY
 #define GRIDSIZE_X 33

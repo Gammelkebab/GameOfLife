@@ -2,17 +2,20 @@
 
 #include <string.h>
 
+#include "../debug/debug.h"
+
 Writer::Writer(World *world, int proc_num) : Actor(world, proc_num)
 {
     world->set_blocks();
 
     /* File write buffers */
-
     file_write_buffers = new char *[world->total_rounds];
     /* File write buffers are created at runtime,
-     * since the header size can not yet be determined.
+     * since the header and block size can not yet be determined.
      */
     file_write_requests = new MPI_Request[world->total_rounds];
+
+    file_handles = new MPI_File[world->total_rounds];
 }
 
 void Writer::tick(int round)
@@ -21,10 +24,15 @@ void Writer::tick(int round)
     {
         recv_and_write(round);
     }
+    else
+    {
+        file_write_requests[round] = MPI_REQUEST_NULL;
+    }
 }
 
 void Writer::recv_and_write(int round)
 {
+
     // Create the header lines for this round
     char header_buffer[100];
     sprintf(header_buffer, "P4\n%d %d\n", world->width, world->height);
@@ -32,26 +40,38 @@ void Writer::recv_and_write(int round)
     // Create the file write buffer for this round
     int write_buffer_size = header_size + world->width_byte * world->height;
     file_write_buffers[round] = new char[write_buffer_size];
-    // Copy the header lines into the file write buffer
     char *file_write_buffer = file_write_buffers[round];
-    char *blocks_write_buffer = file_write_buffer + header_size; // Block buffer starts after header
+    // Copy the header lines into the file write buffer
     strcpy(file_write_buffer, header_buffer);
+
+    // Block buffer starts after header
+    char *block_write_buffer = &file_write_buffer[header_size];
     // Receive all the block, store them in the file write buffer
-    for (int row = 0; row < world->rows; row++)
+    for (int world_row = 0; world_row < world->rows; world_row++)
     {
-        for (int col = 0; col < world->cols; col++)
+        for (int world_col = 0; world_col < world->cols; world_col++)
         {
             // Select the current block
-            Block *block = world->blocks[row][col];
-            int block_offset = block->starting_y * world->width_byte + block->starting_x;
-            // Select the current part of the write buffer
-            char *block_write_buffer = blocks_write_buffer + block_offset;
-            int block_size = block->width * block->height;
+            Block *block = world->blocks[world_row][world_col];
+            // Create the receive buffer
+            int block_size = block->width_byte * block->height;
+            unsigned char recv_buffer[block_size];
             // Receive the blocks information
-            MPI_Recv(block_write_buffer, block_size, MPI_UNSIGNED_CHAR, block->block_num, round, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(recv_buffer, block_size, MPI_UNSIGNED_CHAR, block->block_num, round, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            // Select the current part of the write buffer
+            // Copy the received data into the write buffer
+            for (int block_row = 0; block_row < block->height; block_row++)
+            {
+                int recv_row_offset = block_row * block->width_byte;
+                unsigned char *recv_row = &recv_buffer[recv_row_offset];
+                int write_row_offset = (block_row + block->starting_y) * world->width_byte + block->starting_x / 8;
+                char *write_row = &block_write_buffer[write_row_offset];
+                memcpy(write_row, recv_row, block->width_byte);
+            }
         }
     }
 
+    //debug("opening file\n");
     MPI_File *file = open_file(round);
     // Write the file write buffer to the file
     iwrite_block(file, header_size, round);

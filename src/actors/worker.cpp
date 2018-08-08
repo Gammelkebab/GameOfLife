@@ -34,7 +34,7 @@ Worker::Worker(World *world, int proc_num) : Actor(world, proc_num)
     block_send_buffers = new unsigned char *[world->total_rounds];
     for (int r = 0; r < world->total_rounds; r++)
     {
-        block_send_buffers[r] = new unsigned char[block->width * block->height];
+        block_send_buffers[r] = new unsigned char[block->width_byte * block->height];
     }
     block_send_requests = new MPI_Request[world->total_rounds];
 }
@@ -69,7 +69,7 @@ void Worker::store(int round)
 {
     unsigned char *buffer_compressed = block_send_buffers[round];
     block->compress(buffer_compressed);
-    int buffer_size = block->width * block->height;
+    int buffer_size = block->width_byte * block->height;
     int writer_num = world->get_writer_num(round);
     MPI_Isend(buffer_compressed, buffer_size, MPI_UNSIGNED_CHAR, writer_num, round, MPI_COMM_WORLD, &block_send_requests[round]);
 }

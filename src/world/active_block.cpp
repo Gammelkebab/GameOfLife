@@ -34,7 +34,7 @@ void Active_block::randomize()
 
 void Active_block::compress(unsigned char *buffer)
 {
-    memset(buffer, 0, width * height);
+    memset(buffer, 0, width_byte * height);
     for (int grid_y = 1; grid_y <= height; grid_y++)
     {
         for (int grid_x = 1; grid_x <= width; grid_x++)

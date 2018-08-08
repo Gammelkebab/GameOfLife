@@ -50,10 +50,10 @@ World::World(int width, int height, int proc_amt, int total_rounds, double worke
     // TODO
     // This enables scattering the writers amongst cores,
     // as long as the processor-core-distribution is known
-    writer_nums = new int[worker_amt];
+    writer_nums = new int[writer_amt];
     for (int w = 0; w < writer_amt; w++)
     {
-        writer_nums[w] = w;
+        writer_nums[w] = w + worker_amt; // Put writers behind workers
     }
 }
 

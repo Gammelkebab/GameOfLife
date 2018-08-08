@@ -9,12 +9,12 @@
 #include "actors/actor.h"
 
 #define WORKER_SHARE 0.5
-#define LARGE
+#define SMALL
 
 #ifdef TINY
 #define GRIDSIZE_X 33
 #define GRIDSIZE_Y 29
-#define FRAMES 50
+#define FRAMES 10
 #else
 #ifdef SMALL
 #define GRIDSIZE_X 202
@@ -83,6 +83,8 @@ int main(int argc, char **argv)
 
     actor->finalize();
     print_time_since("Finalize", &fin);
+
+    
 
     MPI_Barrier(MPI_COMM_WORLD);
 

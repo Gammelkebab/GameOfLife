@@ -3,7 +3,7 @@
 #PBS -j oe
 #PBS -m ae
 #PBS -l nodes=4:ppn=16
-#PBS -l walltime=0:02:00
+#PBS -l walltime=0:00:05
 #PBS -l mem=3gb
 #PBS -W x=PARTITION:lena
 

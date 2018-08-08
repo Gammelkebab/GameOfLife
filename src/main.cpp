@@ -50,7 +50,10 @@ int main(int argc, char **argv)
 
     if (proc_num == 0)
     {
-        printf("proc_amt: %d\n", proc_amt);
+        printf("Processors: %d\n", proc_amt);
+        printf("World size: %d x %d\n", GRIDSIZE_X, GRIDSIZE_Y);
+        printf("Frames: %d\n", FRAMES);
+        printf("Worker share: %d\n", WORKER_SHARE);
     }
 
     char processor_name[100];

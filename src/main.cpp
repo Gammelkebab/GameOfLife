@@ -9,7 +9,7 @@
 #include "actors/actor.h"
 
 #define WORKER_SHARE 0.5
-#define MEDIUM
+#define LARGE
 
 #ifdef TINY
 #define GRIDSIZE_X 33
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         */
         actor->tick(i);
     }
-    
+
     MPI_Barrier(MPI_COMM_WORLD);
 
     /* Timer end */

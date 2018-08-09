@@ -16,4 +16,7 @@ module load intel
 
 make clean
 make
+
+lfs setstripe --count -1 images
+
 mpirun ./bin/main

@@ -7,7 +7,10 @@
 #PBS -l mem=256mb
 #PBS -W x=PARTITION:lena
 
-cd $BIGWORK/GameOfLifeBenchmark
+RND = $RANDOM
+
+cp -r GameOfLife/benchmark $BIGWORK/GOL_B_$(RND)
+cd $BIGWORK/GOL_B_$(RND)
 
 module load intel
 

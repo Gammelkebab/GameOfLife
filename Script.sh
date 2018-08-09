@@ -7,7 +7,8 @@
 #PBS -l mem=3gb
 #PBS -W x=PARTITION:lena
 
-cd $BIGWORK/GameOfLife
+cp -r GameOfLife/benchmark $BIGWORK/GOL_$(RND)
+cd $BIGWORK/GOL_$(RND)
 
 module load intel
 

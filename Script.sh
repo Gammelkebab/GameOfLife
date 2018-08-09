@@ -9,7 +9,7 @@
 
 RND=$RANDOM
 
-cp -r GameOfLife/benchmark $BIGWORK/GOL_$RND
+cp -r GameOfLife $BIGWORK/GOL_$RND
 cd $BIGWORK/GOL_$RND
 
 module load intel

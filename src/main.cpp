@@ -79,6 +79,8 @@ int main(int argc, char **argv)
         actor->tick(i);
     }
 
+    actor->finalize();
+
     MPI_Barrier(MPI_COMM_WORLD);
 
     /* Timer end */
